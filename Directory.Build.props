@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <VersionPrefix>0.1.0</VersionPrefix>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+
+    <!-- NuGet Package Information -->
+    <Description></Description>
+    <Authors>Mayuki Sawatari</Authors>
+    <Copyright>Copyright © Mayuki Sawatari</Copyright>
+    <PackageProjectUrl>https://github.com/mayuki/Chell</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/mayuki/Chell</RepositoryUrl>
+    <!--<PackageIcon>icon.png</PackageIcon>-->
+    <PackageTags>CommandLine Shell Process</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+
+  </PropertyGroup>
+</Project>
