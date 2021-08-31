@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Pipelines;
@@ -48,8 +48,8 @@ namespace Chell.Internal
         public async Task CompleteAsync()
         {
             _shutdown = true;
-            _cancellationTokenSource.Cancel();
-            _cancellationTokenSourceCopyStreamToPipe.Cancel();
+            _cancellationTokenSource.CancelAfter(1000);
+            _cancellationTokenSourceCopyStreamToPipe.CancelAfter(1000);
 
             try
             {

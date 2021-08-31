@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
@@ -34,6 +34,9 @@ namespace Chell
         /// Writes all command lines and command outputs.
         /// </summary>
         Full = CommandLine | ConsoleOutputs,
+
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        Debug = Full | 1 << 31,
     }
 
     public class ChellEnvironment

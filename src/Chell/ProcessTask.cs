@@ -14,7 +14,9 @@ namespace Chell
     public class ProcessTask 
     {
         private static readonly TimeSpan ProcessStartScheduledDelay = TimeSpan.FromMilliseconds(250);
+        private static int _idSequence = 0;
 
+        private readonly int _id;
         private readonly Lazy<Task<ProcessOutput>> _taskLazy;
         private readonly ProcessOutput _output;
         private readonly ProcessTaskOptions _options;
@@ -91,6 +93,7 @@ namespace Chell
         private ProcessTask(Stream? inputStream, string commandLine, (string Command, string Arguments) commandAndArguments, ProcessTaskOptions? options = default)
         {
             _options = options ?? ProcessTaskOptions.Default;
+            _id = Interlocked.Increment(ref _idSequence);
 
             _output = new ProcessOutput(_options.ShellExecutor.Encoding);
             _taskLazy = new Lazy<Task<ProcessOutput>>(AsTaskCore, LazyThreadSafetyMode.ExecutionAndPublication);
@@ -115,6 +118,8 @@ namespace Chell
                 // If a Task is requested (e.g. `await`, `AsTask`, `Pipe` ...), it will be started immediately.
                 _ = ScheduleStartProcessAsync();
             }
+
+            WriteDebugTrace($"Created: {commandLine}");
 
             async Task ScheduleStartProcessAsync()
             {
@@ -204,8 +209,9 @@ namespace Chell
         /// <remarks>
         /// Redirecting standard input must be done before the process has started. You can also use a <see cref="ProcessTaskOptions"/> that is guaranteed to enable redirection while creating a <see cref="ProcessTask"/>.
         /// </remarks>
-        public void RedirectStandardInput()
+        public void RedirectStandardInput(bool immediateLaunchProcess = true)
         {
+            WriteDebugTrace($"RedirectStandardInput: immediateLaunchProcess={immediateLaunchProcess}");
             lock (_syncLock)
             {
                 if (_process != null)
@@ -216,7 +222,10 @@ namespace Chell
                 _hasStandardIn = true;
             }
 
-            EnsureProcess();
+            if (immediateLaunchProcess)
+            {
+                EnsureProcess();
+            }
         }
 
         /// <summary>
@@ -274,13 +283,20 @@ namespace Chell
         /// <returns></returns>
         public ProcessTask Pipe(ProcessTask nextProcess)
         {
-            nextProcess.RedirectStandardInput();
+            // First, enable standard input redirection before starting a process for the next ProcessTask.
+            nextProcess.RedirectStandardInput(immediateLaunchProcess: false);
+
+            // Second, start a process.
             EnsureProcess();
+
+            // Third, start a process for the next ProcessTask.
+            nextProcess.EnsureProcess();
 
             if (_stdOutPipe != null && _stdErrorPipe != null)
             {
                 if (nextProcess.Process != null)
                 {
+                    WriteDebugTrace($"Pipe: {Process!.Id} -> {nextProcess.Process.Id}");
                     _stdOutPipe.Connect(nextProcess.Process.StandardInput.BaseStream ?? Stream.Null);
                 }
             }
@@ -330,6 +346,7 @@ namespace Chell
             {
                 _processName = procStartInfo.FileName;
                 _process = Process.Start(procStartInfo)!;
+                WriteDebugTrace($"Process.Start: Pid={_process.Id}; HasStandardIn={_hasStandardIn}; StandardIn={_stdInStream}; IsInputRedirected={Console.IsInputRedirected}");
 
                 if (_stdInStream != null)
                 {
@@ -353,6 +370,8 @@ namespace Chell
 
         private void ReadyPipe()
         {
+            WriteDebugTrace($"ReadyPipe: Pid={Process?.Id}; Piped={_piped}; _stdOutPipe={_stdOutPipe}; _stdErrorPipe={_stdErrorPipe}");
+
             if (!_piped)
             {
                 if (!_suppressPipeToConsole)
@@ -443,17 +462,22 @@ namespace Chell
 #endif
                 _output.ExitCode = proc.ExitCode;
 
+                WriteDebugTrace($"ProcessExited: Pid={proc.Id}; ExitCode={proc.ExitCode}");
+
                 if (connectStdInToPipe)
                 {
                     StandardInput.Pipe.Disconnect(proc.StandardInput.BaseStream);
                 }
 
                 // Flush output streams/pipes
+                WriteDebugTrace($"Pipe/Sink.CompleteAsync: Pid={proc.Id}");
                 await _stdOutPipe.CompleteAsync().ConfigureAwait(false);
                 await _stdErrorPipe.CompleteAsync().ConfigureAwait(false);
                 await _output.Sink.CompleteAsync().ConfigureAwait(false);
+                WriteDebugTrace($"Pipe/Sink.CompleteAsync:Done: Pid={proc.Id}");
 
                 await ThrowIfParentTaskHasThrownProcessException().ConfigureAwait(false);
+
 
                 if (_output.ExitCode != 0)
                 {
@@ -475,5 +499,13 @@ namespace Chell
             return _output;
         }
 
+        [Conditional("DEBUG")]
+        private void WriteDebugTrace(string s)
+        {
+            if (_options.Verbosity.HasFlag(ChellVerbosity.Debug))
+            {
+                Console.WriteLine($"[DEBUG][{_id}] {s}");
+            }
+        }
     }
 }
