@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.FileSystemGlobbing;
+using Microsoft.Extensions.FileSystemGlobbing;
 using Microsoft.Extensions.FileSystemGlobbing.Abstractions;
 using System;
 using System.Collections.Generic;
@@ -118,7 +118,7 @@ namespace Chell
         /// Writes the message to the console.
         /// </summary>
         /// <param name="message"></param>
-        public static void Echo(object message)
+        public static void Echo(object? message = default)
             => Console.WriteLine(message);
 
         /// <summary>
