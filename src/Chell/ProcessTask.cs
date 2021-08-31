@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.ExceptionServices;
@@ -90,7 +90,7 @@ namespace Chell
 
         private ProcessTask(Stream? inputStream, string commandLine, (string Command, string Arguments) commandAndArguments, ProcessTaskOptions? options = default)
         {
-            _options = options ?? new ProcessTaskOptions();
+            _options = options ?? ProcessTaskOptions.Default;
 
             _output = new ProcessOutput(_options.ShellExecutor.Encoding);
             _taskLazy = new Lazy<Task<ProcessOutput>>(AsTaskCore, LazyThreadSafetyMode.ExecutionAndPublication);
@@ -156,7 +156,7 @@ namespace Chell
             {
                 return await _taskLazy.Value.ConfigureAwait(false);
             }
-            catch (Exception e) when (_suppressExceptionExitCodeNonZero)
+            catch when (_suppressExceptionExitCodeNonZero)
             {
                 return _output;
             }
@@ -427,7 +427,7 @@ namespace Chell
                 if (_stdOutPipe is null || _stdErrorPipe is null) throw new InvalidOperationException();
 
                 // If we have no stdin stream and Console's StandardInput is redirected, connects them automatically.
-                var connectStdInToPipe = !_hasStandardIn && Console.IsInputRedirected /*Non-Interactive*/;
+                var connectStdInToPipe = _options.EnableAutoWireStandardInput && !_hasStandardIn && Console.IsInputRedirected /*Non-Interactive*/;
                 if (connectStdInToPipe)
                 {
                     StandardInput.Pipe.Connect(proc.StandardInput.BaseStream);
