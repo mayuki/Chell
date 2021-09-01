@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Chell.Internal;
@@ -173,6 +174,13 @@ namespace Chell
         /// <param name="obj"></param>
         public static void Dump<T>(T obj)
             => ObjectDumper.Dump(obj);
+
+        /// <summary>
+        /// Converts the object to a JSON.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        public static string ToJson<T>(T obj, JsonSerializerOptions? options = default)
+            => JsonSerializer.Serialize<T>(obj, options);
 
         /// <summary>
         /// Converts the JSON to an object.
