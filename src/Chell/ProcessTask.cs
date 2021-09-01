@@ -71,6 +71,9 @@ namespace Chell
         public ProcessTask(Stream? inputStream, FormattableString commandLine, ProcessTaskOptions? options = default)
             : this(inputStream, CommandLineHelper.Expand(commandLine, options?.ShellExecutor ?? ChellEnvironment.Current.Shell.Executor), options)
         { }
+        public ProcessTask(ReadOnlyMemory<byte> inputData, FormattableString commandLine, ProcessTaskOptions? options = default)
+            : this(new MemoryStream(inputData.ToArray()), CommandLineHelper.Expand(commandLine, options?.ShellExecutor ?? ChellEnvironment.Current.Shell.Executor), options)
+        { }
 
         // NOTE: The overload of `string commandLine` cannot be made public due to restrictions.
         public ProcessTask(CommandLineString commandLine, ProcessTaskOptions? options = default)
@@ -78,6 +81,9 @@ namespace Chell
         { }
         public ProcessTask(Stream? inputStream, CommandLineString commandLine, ProcessTaskOptions? options = default)
             : this(inputStream, commandLine.StringValue ?? CommandLineHelper.Expand(commandLine.FormattableStringValue ?? throw new InvalidOperationException("The command line string cannot be null."), options?.ShellExecutor ?? ChellEnvironment.Current.Shell.Executor), options)
+        { }
+        public ProcessTask(ReadOnlyMemory<byte> inputData, CommandLineString commandLine, ProcessTaskOptions? options = default)
+            : this(new MemoryStream(inputData.ToArray()), commandLine.StringValue ?? CommandLineHelper.Expand(commandLine.FormattableStringValue ?? throw new InvalidOperationException("The command line string cannot be null."), options?.ShellExecutor ?? ChellEnvironment.Current.Shell.Executor), options)
         { }
         private ProcessTask(Stream? inputStream, string commandLine, ProcessTaskOptions? options)
             : this(inputStream, commandLine, (options?.ShellExecutor ?? ChellEnvironment.Current.Shell.Executor).GetCommandAndArguments(commandLine), options)
@@ -88,6 +94,9 @@ namespace Chell
         { }
         public ProcessTask(Stream? inputStream, string command, string arguments, ProcessTaskOptions? options = default)
             : this(inputStream, $"{command} {arguments}", (command, arguments), options)
+        { }
+        public ProcessTask(ReadOnlyMemory<byte> inputData, string command, string arguments, ProcessTaskOptions? options = default)
+            : this(new MemoryStream(inputData.ToArray()), $"{command} {arguments}", (command, arguments), options)
         { }
 
         private ProcessTask(Stream? inputStream, string commandLine, (string Command, string Arguments) commandAndArguments, ProcessTaskOptions? options = default)

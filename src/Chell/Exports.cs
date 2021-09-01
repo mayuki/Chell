@@ -115,6 +115,46 @@ namespace Chell
             => new ProcessTask(commandLine, options);
 
         /// <summary>
+        /// Starts the process task with the specified command line.
+        /// </summary>
+        /// <param name="inputStream">The data to be passed to the standard input of the process.</param>
+        /// <param name="commandLine"></param>
+        /// <param name="options"></param>
+        /// <returns></returns>
+        public static ProcessTask Run(Stream inputStream, FormattableString commandLine, ProcessTaskOptions? options = default)
+            => new ProcessTask(inputStream, commandLine, options);
+
+        /// <summary>
+        /// Starts the process task with the specified command line.
+        /// </summary>
+        /// <param name="inputStream">The data to be passed to the standard input of the process.</param>
+        /// <param name="commandLine"></param>
+        /// <param name="options"></param>
+        /// <returns></returns>
+        public static ProcessTask Run(Stream inputStream, CommandLineString commandLine, ProcessTaskOptions? options = default)
+            => new ProcessTask(inputStream, commandLine, options);
+
+        /// <summary>
+        /// Starts the process task with the specified command line.
+        /// </summary>
+        /// <param name="inputData">The data to be passed to the standard input of the process.</param>
+        /// <param name="commandLine"></param>
+        /// <param name="options"></param>
+        /// <returns></returns>
+        public static ProcessTask Run(ReadOnlyMemory<byte> inputData, FormattableString commandLine, ProcessTaskOptions? options = default)
+            => new ProcessTask(inputData, commandLine, options);
+
+        /// <summary>
+        /// Starts the process task with the specified command line.
+        /// </summary>
+        /// <param name="inputData">The data to be passed to the standard input of the process.</param>
+        /// <param name="commandLine"></param>
+        /// <param name="options"></param>
+        /// <returns></returns>
+        public static ProcessTask Run(ReadOnlyMemory<byte> inputData, CommandLineString commandLine, ProcessTaskOptions? options = default)
+            => new ProcessTask(inputData, commandLine, options);
+
+        /// <summary>
         /// Writes the message to the console.
         /// </summary>
         /// <param name="message"></param>
