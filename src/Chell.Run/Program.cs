@@ -84,7 +84,8 @@ namespace Chell.Run
                     // Run .cs script file.
                     var fullPath = Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, fileName));
 
-                    await RunScriptAsync(fullPath, Path.GetDirectoryName(fullPath), await File.ReadAllTextAsync(fileName, Encoding.UTF8), filenameOrArgs.Skip(1).ToArray(), runParams);
+                    var args = filenameOrArgs?.Skip(1).ToArray() ?? Array.Empty<string>();
+                    await RunScriptAsync(fullPath, Path.GetDirectoryName(fullPath) ?? Environment.CurrentDirectory, await File.ReadAllTextAsync(fileName, Encoding.UTF8), args, runParams);
                 }
                 else
                 {
