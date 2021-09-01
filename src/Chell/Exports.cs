@@ -92,6 +92,11 @@ namespace Chell
         }
 
         /// <summary>
+        /// Gets the identifier for the current application process.
+        /// </summary>
+        public static int ProcessId => Env.ProcessId;
+
+        /// <summary>
         /// Gets the Kokuban ANSI style builder to decorate texts.
         /// </summary>
         public static AnsiStyle Chalk => Kokuban.Chalk.Create(KokubanOptions.Default);

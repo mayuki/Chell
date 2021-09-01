@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 using System.IO.Pipes;
 using System.Linq;
@@ -64,6 +65,17 @@ namespace Chell
         public ChellVerbosity Verbosity { get; set; } = ChellVerbosity.Full;
 
         public ShellExecutorProvider Shell { get; } = new ShellExecutorProvider();
+
+        /// <summary>
+        /// Gets the identifier for the current application process.
+        /// </summary>
+        public int ProcessId =>
+#if NET5_0_OR_GREATER
+            Environment.ProcessId
+#else
+            Process.GetCurrentProcess().Id
+#endif
+        ;
 
         /// <summary>
         /// Gets whether the current application is running on Windows.
