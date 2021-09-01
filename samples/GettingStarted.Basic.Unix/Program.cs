@@ -33,4 +33,11 @@ Echo();
 // Get the data from network and pipe it to the process
 await (await FetchByteArrayAsync("http://www.example.com/") | Run("grep title"));
 
+
+// Temporarily change the current directory.
+using (Cd("/"))
+{
+    await Run($"dir");
+}
+
 Exit(1);

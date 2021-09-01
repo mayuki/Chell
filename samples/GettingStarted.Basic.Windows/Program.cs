@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using Chell;
 using static Chell.Exports;
 
 // Starts a process.
@@ -32,5 +33,11 @@ Echo();
 
 // Get the data from network and pipe it to the process
 await (await FetchByteArrayAsync("http://www.example.com/") | Run("findstr title"));
+
+// Temporarily change the current directory.
+using (Cd("C:\\Users"))
+{
+    await Run($"dir");
+}
 
 Exit(1);

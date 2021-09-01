@@ -186,11 +186,33 @@ namespace Chell
         /// <summary>
         /// Changes the current directory to the specified path.
         /// </summary>
+        /// <remarks>
+        /// Dispose the return value to return to the previous directory.
+        /// </remarks>
         /// <param name="path"></param>
-        public static void Cd(string path)
+        public static IDisposable Cd(string path)
+            => new ChangeDirectoryScope(path);
+
+        private class ChangeDirectoryScope : IDisposable
         {
-            CommandLineHelper.WriteCommandLineToConsole($"cd {path}");
-            Environment.CurrentDirectory = path;
+            private readonly string _previousCurrentDirectory;
+
+            public ChangeDirectoryScope(string newCurrentDirectory)
+            {
+                _previousCurrentDirectory = Environment.CurrentDirectory;
+                ChangeDirectory(newCurrentDirectory);
+            }
+
+            public void Dispose()
+            {
+                ChangeDirectory(_previousCurrentDirectory);
+            }
+
+            private void ChangeDirectory(string path)
+            {
+                CommandLineHelper.WriteCommandLineToConsole($"cd {path}");
+                Environment.CurrentDirectory = path;
+            }
         }
 
         /// <summary>
