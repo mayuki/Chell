@@ -114,7 +114,7 @@ namespace Chell
             if (inputStream != null)
             {
                 // Set the stdin stream and start a process immediately.
-                ConnectToStandardInput(inputStream);
+                ConnectStreamToStandardInput(inputStream);
             }
             else if (_options.RedirectStandardInput)
             {
@@ -146,12 +146,12 @@ namespace Chell
 
         public static ProcessTask operator |(Stream a, ProcessTask b)
         {
-            b.ConnectToStandardInput(a);
+            b.ConnectStreamToStandardInput(a);
             return b;
         }
         public static ProcessTask operator |(ReadOnlyMemory<byte> a, ProcessTask b)
         {
-            b.ConnectToStandardInput(new MemoryStream(a.ToArray()));
+            b.ConnectStreamToStandardInput(new MemoryStream(a.ToArray()));
             return b;
         }
 
@@ -244,7 +244,7 @@ namespace Chell
         /// Connecting standard input must be done before the process has started. You can also use a constructor argument that is guaranteed to receive a stream.
         /// </remarks>
         /// <param name="stream"></param>
-        public void ConnectToStandardInput(Stream stream)
+        public void ConnectStreamToStandardInput(Stream stream)
         {
             lock (_syncLock)
             {
