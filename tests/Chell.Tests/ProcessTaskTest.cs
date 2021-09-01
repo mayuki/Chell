@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -90,6 +90,12 @@ namespace Chell.Tests
                     if (line == null) return;
                     Console.WriteLine(line);
                 }
+            ")
+            .Build();
+        public TemporaryAppBuilder.Compilation WriteCurrentDirectory = TemporaryAppBuilder.Create(nameof(WriteCurrentDirectory))
+            .WriteSourceFile("Program.cs", @"
+                using System;
+                Console.WriteLine(Environment.CurrentDirectory);
             ")
             .Build();
 
@@ -262,6 +268,22 @@ namespace Chell.Tests
             var destTask = new ProcessTask($"{_fixture.ReadAllLines.ExecutablePath}");
 
             await (srcTask.NoThrow() | destTask);
+        }
+
+        [Fact]
+        public async Task WorkingDirectory()
+        {
+            {
+                var currentDirectory = Environment.CurrentDirectory;
+                var output = await new ProcessTask($"{_fixture.WriteCurrentDirectory.ExecutablePath}");
+                output.ToString().Trim().Should().Be(currentDirectory);
+            }
+            {
+                var currentDirectory = Environment.CurrentDirectory;
+                var workingDirectory = Path.GetFullPath(Path.Combine(currentDirectory, ".."));
+                var output = await new ProcessTask($"{_fixture.WriteCurrentDirectory.ExecutablePath}", ProcessTaskOptions.Default.WithWorkingDirectory(workingDirectory));
+                output.ToString().Trim().Should().Be(workingDirectory);
+            }
         }
     }
 }

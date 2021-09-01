@@ -344,6 +344,7 @@ namespace Chell
                 RedirectStandardOutput = true,
                 RedirectStandardInput = Console.IsInputRedirected || _hasStandardIn,
                 RedirectStandardError = true,
+                WorkingDirectory = _options.WorkingDirectory ?? string.Empty,
             };
 
             if (_options.Verbosity.HasFlag(ChellVerbosity.CommandLine))
