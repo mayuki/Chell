@@ -354,7 +354,7 @@ namespace Chell
 
             var result = matcher.Execute(new DirectoryInfoWrapper(new DirectoryInfo(baseDir)));
             return result.Files
-                .Select(x => x.Path);
+                .Select(x => Path.GetFullPath(Path.Combine(baseDir, x.Stem))); // NOTE: Microsoft.Extensions.FileSystemGlobbing 5.0.0 does not reflect the root directory in `Path`.
         }
 
         /// <summary>
