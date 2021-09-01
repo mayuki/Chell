@@ -148,7 +148,10 @@ namespace Chell
         /// </summary>
         /// <param name="path"></param>
         public static void Cd(string path)
-            => Environment.CurrentDirectory = path;
+        {
+            CommandLineHelper.WriteCommandLineToConsole($"cd {path}");
+            Environment.CurrentDirectory = path;
+        }
 
         /// <summary>
         /// Sleeps for the specified time.
@@ -189,6 +192,7 @@ namespace Chell
         /// <returns></returns>
         public static Task<HttpResponseMessage> FetchAsync(string requestUri, CancellationToken cancellationToken = default)
         {
+            CommandLineHelper.WriteCommandLineToConsole($"{nameof(FetchAsync)} {requestUri}");
             var httpClient = new HttpClient();
             return httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Get, requestUri), cancellationToken);
         }
@@ -201,6 +205,7 @@ namespace Chell
         /// <returns></returns>
         public static async Task<string> FetchStringAsync(string requestUri, CancellationToken cancellationToken = default)
         {
+            CommandLineHelper.WriteCommandLineToConsole($"{nameof(FetchStringAsync)} {requestUri}");
             var httpClient = new HttpClient();
             var res = await httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Get, requestUri), cancellationToken);
             res.EnsureSuccessStatusCode();
@@ -220,6 +225,7 @@ namespace Chell
         /// <returns></returns>
         public static async Task<byte[]> FetchByteArrayAsync(string requestUri, CancellationToken cancellationToken = default)
         {
+            CommandLineHelper.WriteCommandLineToConsole($"{nameof(FetchByteArrayAsync)} {requestUri}");
             var httpClient = new HttpClient();
             var res = await httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Get, requestUri), cancellationToken);
             res.EnsureSuccessStatusCode();
@@ -239,6 +245,7 @@ namespace Chell
         /// <returns></returns>
         public static async Task<Stream> FetchStreamAsync(string requestUri, CancellationToken cancellationToken = default)
         {
+            CommandLineHelper.WriteCommandLineToConsole($"{nameof(FetchStreamAsync)} {requestUri}");
             var httpClient = new HttpClient();
             var res = await httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Get, requestUri), cancellationToken);
             res.EnsureSuccessStatusCode();
