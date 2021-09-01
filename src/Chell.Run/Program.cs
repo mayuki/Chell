@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -98,6 +98,7 @@ namespace Chell.Run
             _ = typeof(System.Text.Json.JsonSerializer).Assembly;
             _ = typeof(Chell.ChellEnvironment).Assembly;
             _ = typeof(Cocona.CoconaLiteApp).Assembly;
+            _ = typeof(Sharprompt.Prompt).Assembly;
 
             var references = AppDomain.CurrentDomain.GetAssemblies()
                 .Distinct()

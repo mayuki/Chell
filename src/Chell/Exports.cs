@@ -309,5 +309,16 @@ namespace Chell
             return result.Files
                 .Select(x => x.Path);
         }
+
+        /// <summary>
+        /// Displays the message and reads lines entered by the user from the console.
+        /// </summary>
+        /// <param name="message"></param>
+        /// <returns></returns>
+        public static async Task<string?> Prompt(string message)
+        {
+            Console.Write(message);
+            return await Console.In.ReadLineAsync();
+        }
     }
 }
