@@ -101,7 +101,7 @@ namespace Chell
 
         private ProcessTask(Stream? inputStream, string commandLine, (string Command, string Arguments) commandAndArguments, ProcessTaskOptions? options = default)
         {
-            _options = options ?? ProcessTaskOptions.Default;
+            _options = options ?? new ProcessTaskOptions();
             _id = Interlocked.Increment(ref _idSequence);
 
             _output = new ProcessOutput(_options.ShellExecutor.Encoding);

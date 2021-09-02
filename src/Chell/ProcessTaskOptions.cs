@@ -4,8 +4,6 @@ namespace Chell
 {
     public class ProcessTaskOptions
     {
-        public static ProcessTaskOptions Default { get; } = new ProcessTaskOptions();
-
         /// <summary>
         /// Gets or sets whether to enable automatic wiring of standard input to the process. The default value is <value>true</value>.
         /// </summary>

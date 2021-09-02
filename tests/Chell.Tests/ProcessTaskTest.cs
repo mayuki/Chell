@@ -110,6 +110,7 @@ namespace Chell.Tests
         }
     }
 
+    [Collection("ProcessTaskTest")] // NOTE: Test cases use `Console` and does not run in parallel.
     public class ProcessTaskTest : IClassFixture<ProcessTaskTestFixture>
     {
         private readonly ProcessTaskTestFixture _fixture;
@@ -117,6 +118,19 @@ namespace Chell.Tests
         public ProcessTaskTest(ProcessTaskTestFixture fixture)
         {
             _fixture = fixture;
+        }
+
+        private async Task<(string StandardOut, string StandardError)> RunAsync(Func<Task> func)
+        {
+            var stdOutWriter = new StringWriter();
+            var stdErrWriter = new StringWriter();
+
+            Console.SetOut(stdOutWriter);
+            Console.SetError(stdErrWriter);
+
+            await func();
+
+            return (stdOutWriter.ToString(), stdErrWriter.ToString());
         }
 
         [Fact]
@@ -281,9 +295,45 @@ namespace Chell.Tests
             {
                 var currentDirectory = Environment.CurrentDirectory;
                 var workingDirectory = Path.GetFullPath(Path.Combine(currentDirectory, ".."));
-                var output = await new ProcessTask($"{_fixture.WriteCurrentDirectory.ExecutablePath}", ProcessTaskOptions.Default.WithWorkingDirectory(workingDirectory));
+                var output = await new ProcessTask($"{_fixture.WriteCurrentDirectory.ExecutablePath}", new ProcessTaskOptions().WithWorkingDirectory(workingDirectory));
                 output.ToString().Trim().Should().Be(workingDirectory);
             }
         }
+
+#if FALSE
+        [Fact]
+        public async Task Verbosity_Silent()
+        {
+            var (stdOut, stdErr) = await RunAsync(async () =>
+            {
+                await new ProcessTask($"{_fixture.HelloWorld.ExecutablePath}", new ProcessTaskOptions().WithVerbosity(ChellVerbosity.Silent));
+            });
+
+            stdOut.Should().BeEmpty();
+        }
+
+        [Fact]
+        public async Task Verbosity_CommandLine()
+        {
+            var (stdOut, stdErr) = await RunAsync(async () =>
+            {
+                await new ProcessTask($"{_fixture.HelloWorld.ExecutablePath}", new ProcessTaskOptions().WithVerbosity(ChellVerbosity.CommandLine));
+            });
+
+            stdOut.Should().StartWith("$ ");
+            stdOut.Should().NotContain("Hello");
+        }
+
+        [Fact]
+        public async Task Verbosity_ConsoleOutputs()
+        {
+            var (stdOut, stdErr) = await RunAsync(async () =>
+            {
+                await new ProcessTask($"{_fixture.HelloWorld.ExecutablePath}", new ProcessTaskOptions().WithVerbosity(ChellVerbosity.ConsoleOutputs));
+            });
+
+            stdOut.Should().Be("Hello World!" + Environment.NewLine);
+        }
+#endif
     }
 }
