@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -56,6 +56,9 @@ namespace Chell
         {
             Sink = new OutputSink(encoding);
         }
+
+        public static implicit operator string(ProcessOutput processOutput)
+            => processOutput.ToString();
 
         /// <summary>
         /// Gets the standard outputs and standard errors as <see cref="String"/>.
