@@ -300,6 +300,16 @@ namespace Chell.Tests
             }
         }
 
+        [Fact]
+        public async Task ProcessTimeout()
+        {
+            await Assert.ThrowsAsync<OperationCanceledException>(async () =>
+            {
+                await new ProcessTask($"{_fixture.WriteSleepWriteExit.ExecutablePath}",
+                    new ProcessTaskOptions().WithTimeout(TimeSpan.FromMilliseconds(100)));
+            });
+        }
+
 #if FALSE
         [Fact]
         public async Task Verbosity_Silent()

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Runtime.InteropServices;
 using Chell.Shell;
 
@@ -38,7 +38,7 @@ namespace Chell
         {
             provider.SetExecutor(new CmdShellExecutor());
         }
-        public static void UseShell(this ShellExecutorProvider provider)
+        public static void UseDefault(this ShellExecutorProvider provider)
         {
             provider.SetExecutor(ShellExecutorProvider.GetPlatformPreferredExecutor());
         }

@@ -134,6 +134,13 @@ namespace Chell
         /// </summary>
         public ChellWritableStream StdErr => new ChellWritableStream(Console.OpenStandardError(), Console.OutputEncoding);
 
+        /// <summary>
+        /// Gets or sets the default timeout for the process. The value affects the current application. The default value is <see cref="TimeSpan.Zero"/>.
+        /// </summary>
+        /// <remarks>
+        /// If the value is <see cref="TimeSpan.Zero"/> or <see cref="TimeSpan.MaxValue"/>, the process will not be timed out.
+        /// </remarks>
+        public TimeSpan ProcessTimeout { get; set; } = TimeSpan.Zero;
 
         [EditorBrowsable(EditorBrowsableState.Never)]
         public void SetCommandLineArgs(string? executablePath, string executableName, string executableDirectory, string[] args)

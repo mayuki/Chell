@@ -1,3 +1,4 @@
+using System;
 using Chell.Shell;
 
 namespace Chell
@@ -15,12 +16,12 @@ namespace Chell
         public bool RedirectStandardInput { get; set; }
 
         /// <summary>
-        /// Gets or sets the shell executor.
+        /// Gets or sets the shell executor. The default value is <c>ChellEnvironment.Current.Shell.Executor</c>.
         /// </summary>
         public IShellExecutor ShellExecutor { get; set; }
 
         /// <summary>
-        /// Gets or sets the verbosity.
+        /// Gets or sets the verbosity. The default value is <c>ChellEnvironment.Current.Verbosity</c>.
         /// </summary>
         public ChellVerbosity Verbosity { get; set; }
 
@@ -29,13 +30,29 @@ namespace Chell
         /// </summary>
         public string? WorkingDirectory { get; set; }
 
-        public ProcessTaskOptions(bool? redirectStandardInput = default, bool? enableAutoWireStandardInput = default, ChellVerbosity? verbosity = default, IShellExecutor? shellExecutor = default, string? workingDirectory = default)
+        /// <summary>
+        /// Gets or sets the duration to timeout the process. The default value is <c>ChellEnvironment.Current.ProcessTimeout</c>.
+        /// </summary>
+        /// <remarks>
+        /// If the value is <see cref="TimeSpan.Zero"/> or <see cref="TimeSpan.MaxValue"/>, the process will not be timed out.
+        /// </remarks>
+        public TimeSpan Timeout { get; set; }
+
+        public ProcessTaskOptions(
+            bool? redirectStandardInput = default,
+            bool? enableAutoWireStandardInput = default,
+            ChellVerbosity? verbosity = default,
+            IShellExecutor? shellExecutor = default,
+            string? workingDirectory = default,
+            TimeSpan? timeout = default
+        )
         {
             RedirectStandardInput = redirectStandardInput ?? false;
             EnableAutoWireStandardInput = enableAutoWireStandardInput ?? true;
             ShellExecutor = shellExecutor ?? ChellEnvironment.Current.Shell.Executor;
             Verbosity = verbosity ?? ChellEnvironment.Current.Verbosity;
             WorkingDirectory = workingDirectory ?? workingDirectory;
+            Timeout = timeout ?? ChellEnvironment.Current.ProcessTimeout;
         }
 
         private ProcessTaskOptions(ProcessTaskOptions orig)
@@ -45,6 +62,7 @@ namespace Chell
             ShellExecutor = orig.ShellExecutor;
             Verbosity = orig.Verbosity;
             WorkingDirectory = orig.WorkingDirectory;
+            Timeout = orig.Timeout;
         }
 
         public ProcessTaskOptions WithRedirectStandardInput(bool redirectStandardInput)
@@ -57,5 +75,7 @@ namespace Chell
             => new ProcessTaskOptions(this) { Verbosity = verbosity };
         public ProcessTaskOptions WithWorkingDirectory(string? workingDirectory)
             => new ProcessTaskOptions(this) { WorkingDirectory = workingDirectory };
+        public ProcessTaskOptions WithTimeout(TimeSpan timeout)
+            => new ProcessTaskOptions(this) { Timeout = timeout };
     }
 }

@@ -17,9 +17,12 @@ namespace Chell
         private static int _idSequence = 0;
 
         private readonly int _id;
+        private readonly DateTimeOffset _startedAt;
         private readonly Lazy<Task<ProcessOutput>> _taskLazy;
         private readonly ProcessOutput _output;
         private readonly ProcessTaskOptions _options;
+        private readonly CancellationTokenSource _processCancellation;
+        private readonly CancellationTokenRegistration _processCancellationRegistration;
 
         private readonly object _syncLock = new object();
         private string? _processName;
@@ -101,8 +104,15 @@ namespace Chell
 
         private ProcessTask(Stream? inputStream, string commandLine, (string Command, string Arguments) commandAndArguments, ProcessTaskOptions? options = default)
         {
+            _startedAt = DateTimeOffset.Now;
             _options = options ?? new ProcessTaskOptions();
             _id = Interlocked.Increment(ref _idSequence);
+            _processCancellation = new CancellationTokenSource();
+            _processCancellationRegistration = _processCancellation.Token.Register(() =>
+            {
+                WriteDebugTrace($"ProcessTimedOut: Pid={_process?.Id}; StartedAt={_startedAt}; Elapsed={DateTimeOffset.Now - _startedAt}");
+                _process?.Kill();
+            });
 
             _output = new ProcessOutput(_options.ShellExecutor.Encoding);
             _taskLazy = new Lazy<Task<ProcessOutput>>(AsTaskCore, LazyThreadSafetyMode.ExecutionAndPublication);
@@ -358,6 +368,13 @@ namespace Chell
                 _process = Process.Start(procStartInfo)!;
                 WriteDebugTrace($"Process.Start: Pid={_process.Id}; HasStandardIn={_hasStandardIn}; StandardIn={_stdInStream}; IsInputRedirected={Console.IsInputRedirected}");
 
+                // Set a timeout if the option has non-zero or max-value.
+                if (_options.Timeout != TimeSpan.MaxValue && _options.Timeout != TimeSpan.Zero)
+                {
+                    _processCancellation.CancelAfter(_options.Timeout);
+                }
+
+                // Connect the stream to the standard input.
                 if (_stdInStream != null)
                 {
                     _ = CopyCoreAsync(_stdInStream, _process.StandardInput.BaseStream);
@@ -465,11 +482,20 @@ namespace Chell
 
                 ReadyPipe();
 
+
+                try
+                {
 #if NET5_0_OR_GREATER
-                await proc.WaitForExitAsync().ConfigureAwait(false);
+                    await proc.WaitForExitAsync().ConfigureAwait(false);
 #else
-                await Task.Run(() => proc.WaitForExit()).ConfigureAwait(false);
+                    await Task.Run(() => proc.WaitForExit()).ConfigureAwait(false);
 #endif
+                }
+                finally
+                {
+                    _processCancellationRegistration.Dispose();
+                }
+
                 _output.ExitCode = proc.ExitCode;
 
                 WriteDebugTrace($"ProcessExited: Pid={proc.Id}; ExitCode={proc.ExitCode}");
@@ -488,15 +514,23 @@ namespace Chell
 
                 await ThrowIfParentTaskHasThrownProcessException().ConfigureAwait(false);
 
-
                 if (_output.ExitCode != 0)
                 {
-                    throw new ProcessTaskException(_processName ?? "Unknown", proc.Id, this, _output);
+                    var ex = new ProcessTaskException(_processName ?? "Unknown", proc.Id, this, _output);
+                    if (_processCancellation.IsCancellationRequested)
+                    {
+                        throw new OperationCanceledException($"The process has reached the timeout. (Timeout: {_options.Timeout})", ex);
+                    }
+                    else
+                    {
+                        throw ex;
+                    }
                 }
             }
             else
             {
                 _output.ExitCode = 127;
+                _processCancellationRegistration.Dispose();
                 if (_processException != null)
                 {
                     throw new ProcessTaskException(this, _output, _processException.SourceException);
