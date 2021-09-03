@@ -65,6 +65,7 @@ namespace Chell
         public ChellVerbosity Verbosity { get; set; } = ChellVerbosity.Full;
 
         public ShellExecutorProvider Shell { get; } = new ShellExecutorProvider();
+        public IConsoleProvider Console { get; set; } = SystemConsoleProvider.Instance;
 
         /// <summary>
         /// Gets the identifier for the current application process.
@@ -122,17 +123,17 @@ namespace Chell
         /// <summary>
         /// Gets the standard input stream.
         /// </summary>
-        public ChellReadableStream StdIn => new ChellReadableStream(Console.OpenStandardInput(), Console.InputEncoding);
+        public ChellReadableStream StdIn => new ChellReadableStream(this.Console.OpenStandardInput(), this.Console.InputEncoding);
 
         /// <summary>
         /// Gets the standard output stream.
         /// </summary>
-        public ChellWritableStream StdOut => new ChellWritableStream(Console.OpenStandardOutput(), Console.OutputEncoding);
+        public ChellWritableStream StdOut => new ChellWritableStream(this.Console.OpenStandardOutput(), this.Console.OutputEncoding);
 
         /// <summary>
         /// Gets the standard output stream.
         /// </summary>
-        public ChellWritableStream StdErr => new ChellWritableStream(Console.OpenStandardError(), Console.OutputEncoding);
+        public ChellWritableStream StdErr => new ChellWritableStream(this.Console.OpenStandardError(), this.Console.OutputEncoding);
 
         /// <summary>
         /// Gets or sets the default timeout for the process. The value affects the current application. The default value is <see cref="TimeSpan.Zero"/>.

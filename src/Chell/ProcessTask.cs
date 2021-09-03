@@ -350,9 +350,9 @@ namespace Chell
                 FileName = Command,
                 Arguments = Arguments,
                 UseShellExecute = false,
-                CreateNoWindow = Console.IsInputRedirected,
+                CreateNoWindow = _options.Console.IsInputRedirected,
                 RedirectStandardOutput = true,
-                RedirectStandardInput = Console.IsInputRedirected || _hasStandardIn,
+                RedirectStandardInput = _options.Console.IsInputRedirected || _hasStandardIn,
                 RedirectStandardError = true,
                 WorkingDirectory = _options.WorkingDirectory ?? string.Empty,
             };
@@ -403,19 +403,19 @@ namespace Chell
             {
                 if (!_suppressPipeToConsole)
                 {
-                    _stdOutPipe?.Connect(Console.OpenStandardOutput());
-                    _stdErrorPipe?.Connect(Console.OpenStandardError());
+                    _stdOutPipe?.Connect(_options.Console.OpenStandardOutput());
+                    _stdErrorPipe?.Connect(_options.Console.OpenStandardError());
 
                     // NOTE: LINQPad has no standard output support. Use TextWriter instead.
                     if (LINQPadHelper.RunningOnLINQPad)
                     {
                         if (_stdOutPipe != null)
                         {
-                            LINQPadHelper.ConnectToTextWriter(_stdOutPipe, Console.Out);
+                            LINQPadHelper.ConnectToTextWriter(_stdOutPipe, _options.Console.Out);
                         }
                         if (_stdErrorPipe != null)
                         {
-                            LINQPadHelper.ConnectToTextWriter(_stdErrorPipe, Console.Error);
+                            LINQPadHelper.ConnectToTextWriter(_stdErrorPipe, _options.Console.Error);
                         }
                     }
                 }
@@ -473,7 +473,7 @@ namespace Chell
                 if (_stdOutPipe is null || _stdErrorPipe is null) throw new InvalidOperationException();
 
                 // If we have no stdin stream and Console's StandardInput is redirected, connects them automatically.
-                var connectStdInToPipe = _options.EnableAutoWireStandardInput && !_hasStandardIn && Console.IsInputRedirected /*Non-Interactive*/;
+                var connectStdInToPipe = _options.EnableAutoWireStandardInput && !_hasStandardIn && _options.Console.IsInputRedirected /*Non-Interactive*/;
                 if (connectStdInToPipe)
                 {
                     StandardInput.Pipe.Connect(proc.StandardInput.BaseStream);
@@ -548,7 +548,7 @@ namespace Chell
         {
             if (_options.Verbosity.HasFlag(ChellVerbosity.Debug))
             {
-                Console.WriteLine($"[DEBUG][{_id}] {s}");
+                _options.Console.Out.WriteLine($"[DEBUG][{_id}] {s}");
             }
         }
     }

@@ -1,4 +1,5 @@
 using System;
+using Chell.IO;
 using Chell.Shell;
 
 namespace Chell
@@ -19,6 +20,11 @@ namespace Chell
         /// Gets or sets the shell executor. The default value is <c>ChellEnvironment.Current.Shell.Executor</c>.
         /// </summary>
         public IShellExecutor ShellExecutor { get; set; }
+
+        /// <summary>
+        /// Gets or sets the console provider. The default value is <c>ChellEnvironment.Current.Console</c>.
+        /// </summary>
+        public IConsoleProvider Console { get; set; }
 
         /// <summary>
         /// Gets or sets the verbosity. The default value is <c>ChellEnvironment.Current.Verbosity</c>.
@@ -43,6 +49,7 @@ namespace Chell
             bool? enableAutoWireStandardInput = default,
             ChellVerbosity? verbosity = default,
             IShellExecutor? shellExecutor = default,
+            IConsoleProvider? console = default,
             string? workingDirectory = default,
             TimeSpan? timeout = default
         )
@@ -50,6 +57,7 @@ namespace Chell
             RedirectStandardInput = redirectStandardInput ?? false;
             EnableAutoWireStandardInput = enableAutoWireStandardInput ?? true;
             ShellExecutor = shellExecutor ?? ChellEnvironment.Current.Shell.Executor;
+            Console = console ?? ChellEnvironment.Current.Console;
             Verbosity = verbosity ?? ChellEnvironment.Current.Verbosity;
             WorkingDirectory = workingDirectory ?? workingDirectory;
             Timeout = timeout ?? ChellEnvironment.Current.ProcessTimeout;
@@ -60,6 +68,7 @@ namespace Chell
             RedirectStandardInput = orig.RedirectStandardInput;
             EnableAutoWireStandardInput = orig.EnableAutoWireStandardInput;
             ShellExecutor = orig.ShellExecutor;
+            Console = orig.Console;
             Verbosity = orig.Verbosity;
             WorkingDirectory = orig.WorkingDirectory;
             Timeout = orig.Timeout;
