@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Chell.IO;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 using Xunit;
@@ -120,17 +121,13 @@ namespace Chell.Tests
             _fixture = fixture;
         }
 
-        private async Task<(string StandardOut, string StandardError)> RunAsync(Func<Task> func)
+        private async Task<(string StandardOut, string StandardError)> RunAsync(Func<IConsoleProvider, Task> func)
         {
-            var stdOutWriter = new StringWriter();
-            var stdErrWriter = new StringWriter();
+            var fakeConsole = new FakeConsoleProvider();
 
-            Console.SetOut(stdOutWriter);
-            Console.SetError(stdErrWriter);
+            await func(fakeConsole);
 
-            await func();
-
-            return (stdOutWriter.ToString(), stdErrWriter.ToString());
+            return (fakeConsole.GetStandardOutputAsString(), fakeConsole.GetStandardErrorAsString());
         }
 
         [Fact]
@@ -310,13 +307,12 @@ namespace Chell.Tests
             });
         }
 
-#if FALSE
         [Fact]
         public async Task Verbosity_Silent()
         {
-            var (stdOut, stdErr) = await RunAsync(async () =>
+            var (stdOut, stdErr) = await RunAsync(async (console) =>
             {
-                await new ProcessTask($"{_fixture.HelloWorld.ExecutablePath}", new ProcessTaskOptions().WithVerbosity(ChellVerbosity.Silent));
+                await new ProcessTask($"{_fixture.HelloWorld.ExecutablePath}", new ProcessTaskOptions(console: console).WithVerbosity(ChellVerbosity.Silent));
             });
 
             stdOut.Should().BeEmpty();
@@ -325,9 +321,9 @@ namespace Chell.Tests
         [Fact]
         public async Task Verbosity_CommandLine()
         {
-            var (stdOut, stdErr) = await RunAsync(async () =>
+            var (stdOut, stdErr) = await RunAsync(async (console) =>
             {
-                await new ProcessTask($"{_fixture.HelloWorld.ExecutablePath}", new ProcessTaskOptions().WithVerbosity(ChellVerbosity.CommandLine));
+                await new ProcessTask($"{_fixture.HelloWorld.ExecutablePath}", new ProcessTaskOptions(console: console).WithVerbosity(ChellVerbosity.CommandLine));
             });
 
             stdOut.Should().StartWith("$ ");
@@ -337,13 +333,40 @@ namespace Chell.Tests
         [Fact]
         public async Task Verbosity_ConsoleOutputs()
         {
-            var (stdOut, stdErr) = await RunAsync(async () =>
+            var (stdOut, stdErr) = await RunAsync(async (console) =>
             {
-                await new ProcessTask($"{_fixture.HelloWorld.ExecutablePath}", new ProcessTaskOptions().WithVerbosity(ChellVerbosity.ConsoleOutputs));
+                await new ProcessTask($"{_fixture.HelloWorld.ExecutablePath}", new ProcessTaskOptions(console: console).WithVerbosity(ChellVerbosity.ConsoleOutputs));
             });
 
             stdOut.Should().Be("Hello World!" + Environment.NewLine);
         }
-#endif
+    }
+
+    public class FakeConsoleProvider : IConsoleProvider
+    {
+        private readonly MemoryStream _input = new MemoryStream();
+        private readonly MemoryStream _output = new MemoryStream();
+        private readonly MemoryStream _error = new MemoryStream();
+
+        public string GetStandardOutputAsString() => Encoding.UTF8.GetString(_output.ToArray());
+        public string GetStandardErrorAsString() => Encoding.UTF8.GetString(_error.ToArray());
+
+        public Stream OpenStandardInput()
+            => _input;
+
+        public Stream OpenStandardOutput()
+            => _output;
+
+        public Stream OpenStandardError()
+            => _error;
+
+        public Encoding InputEncoding => Encoding.UTF8;
+        public Encoding OutputEncoding => Encoding.UTF8;
+        public Encoding ErrorEncoding => Encoding.UTF8;
+        public bool IsInputRedirected => false;
+        public bool IsOutputRedirected => false;
+        public bool IsErrorRedirected => false;
+        public TextWriter Out => new StreamWriter(_output, OutputEncoding, leaveOpen: true);
+        public TextWriter Error => new StreamWriter(_error, ErrorEncoding, leaveOpen: true);
     }
 }
