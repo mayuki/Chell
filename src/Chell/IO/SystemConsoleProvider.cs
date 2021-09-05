@@ -25,7 +25,6 @@ namespace Chell.IO
 
         public Encoding InputEncoding => Console.InputEncoding;
         public Encoding OutputEncoding => Console.OutputEncoding;
-        public Encoding ErrorEncoding => Console.OutputEncoding;
 
         public bool IsInputRedirected => Console.IsInputRedirected;
         public bool IsOutputRedirected => Console.IsOutputRedirected;

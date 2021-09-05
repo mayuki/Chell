@@ -405,19 +405,6 @@ namespace Chell
                 {
                     _stdOutPipe?.Connect(_options.Console.OpenStandardOutput());
                     _stdErrorPipe?.Connect(_options.Console.OpenStandardError());
-
-                    // NOTE: LINQPad has no standard output support. Use TextWriter instead.
-                    if (LINQPadHelper.RunningOnLINQPad)
-                    {
-                        if (_stdOutPipe != null)
-                        {
-                            LINQPadHelper.ConnectToTextWriter(_stdOutPipe, _options.Console.Out);
-                        }
-                        if (_stdErrorPipe != null)
-                        {
-                            LINQPadHelper.ConnectToTextWriter(_stdErrorPipe, _options.Console.Error);
-                        }
-                    }
                 }
                 _stdOutPipe?.Connect(_output.Sink.OutputWriter);
                 _stdErrorPipe?.Connect(_output.Sink.ErrorWriter);

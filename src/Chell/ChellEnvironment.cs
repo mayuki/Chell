@@ -65,7 +65,10 @@ namespace Chell
         public ChellVerbosity Verbosity { get; set; } = ChellVerbosity.Full;
 
         public ShellExecutorProvider Shell { get; } = new ShellExecutorProvider();
-        public IConsoleProvider Console { get; set; } = SystemConsoleProvider.Instance;
+        public IConsoleProvider Console { get; set; } =
+            LINQPadHelper.RunningOnLINQPad
+                ? new LINQPadConsoleProvider()
+                : SystemConsoleProvider.Instance;
 
         /// <summary>
         /// Gets the identifier for the current application process.

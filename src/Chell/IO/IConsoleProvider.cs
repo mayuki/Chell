@@ -11,7 +11,6 @@ namespace Chell.IO
         Stream OpenStandardError();
         Encoding InputEncoding { get; }
         Encoding OutputEncoding { get; }
-        Encoding ErrorEncoding { get; }
         bool IsInputRedirected { get; }
         bool IsOutputRedirected { get; }
         bool IsErrorRedirected { get; }
