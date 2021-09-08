@@ -165,7 +165,7 @@ namespace Chell
         /// </summary>
         /// <param name="message"></param>
         public static void Echo(object? message = default)
-            => Console.WriteLine(message);
+            => ChellEnvironment.Current.Console.Out.WriteLine(message);
 
         /// <summary>
         /// Writes the object details to the console.
@@ -223,7 +223,7 @@ namespace Chell
 
             private void ChangeDirectory(string path)
             {
-                CommandLineHelper.WriteCommandLineToConsole($"cd {path}");
+                CommandLineHelper.WriteCommandLineToConsole(ChellEnvironment.Current.Console, $"cd {path}");
                 Environment.CurrentDirectory = path;
             }
         }
@@ -267,7 +267,7 @@ namespace Chell
         /// <returns></returns>
         public static Task<HttpResponseMessage> FetchAsync(string requestUri, CancellationToken cancellationToken = default)
         {
-            CommandLineHelper.WriteCommandLineToConsole($"{nameof(FetchAsync)} {requestUri}");
+            CommandLineHelper.WriteCommandLineToConsole(ChellEnvironment.Current.Console, $"{nameof(FetchAsync)} {requestUri}");
             var httpClient = new HttpClient();
             return httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Get, requestUri), cancellationToken);
         }
@@ -280,7 +280,7 @@ namespace Chell
         /// <returns></returns>
         public static async Task<string> FetchStringAsync(string requestUri, CancellationToken cancellationToken = default)
         {
-            CommandLineHelper.WriteCommandLineToConsole($"{nameof(FetchStringAsync)} {requestUri}");
+            CommandLineHelper.WriteCommandLineToConsole(ChellEnvironment.Current.Console, $"{nameof(FetchStringAsync)} {requestUri}");
             var httpClient = new HttpClient();
             var res = await httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Get, requestUri), cancellationToken);
             res.EnsureSuccessStatusCode();
@@ -300,7 +300,7 @@ namespace Chell
         /// <returns></returns>
         public static async Task<byte[]> FetchByteArrayAsync(string requestUri, CancellationToken cancellationToken = default)
         {
-            CommandLineHelper.WriteCommandLineToConsole($"{nameof(FetchByteArrayAsync)} {requestUri}");
+            CommandLineHelper.WriteCommandLineToConsole(ChellEnvironment.Current.Console, $"{nameof(FetchByteArrayAsync)} {requestUri}");
             var httpClient = new HttpClient();
             var res = await httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Get, requestUri), cancellationToken);
             res.EnsureSuccessStatusCode();
@@ -320,7 +320,7 @@ namespace Chell
         /// <returns></returns>
         public static async Task<Stream> FetchStreamAsync(string requestUri, CancellationToken cancellationToken = default)
         {
-            CommandLineHelper.WriteCommandLineToConsole($"{nameof(FetchStreamAsync)} {requestUri}");
+            CommandLineHelper.WriteCommandLineToConsole(ChellEnvironment.Current.Console, $"{nameof(FetchStreamAsync)} {requestUri}");
             var httpClient = new HttpClient();
             var res = await httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Get, requestUri), cancellationToken);
             res.EnsureSuccessStatusCode();

@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Linq;
+using Chell.IO;
 using Chell.Shell;
 using Kokuban;
 
@@ -10,7 +11,7 @@ namespace Chell.Internal
 {
     internal class CommandLineHelper
     {
-        public static void WriteCommandLineToConsole(string commandLine, ChellVerbosity? verbosity = default)
+        public static void WriteCommandLineToConsole(IConsoleProvider console, string commandLine, ChellVerbosity? verbosity = default)
         {
             verbosity ??= ChellEnvironment.Current.Verbosity;
             if (verbosity.Value.HasFlag(ChellVerbosity.CommandLine))
@@ -23,7 +24,7 @@ namespace Chell.Internal
                 }
                 else
                 {
-                    Console.WriteLine("$ " + (Chalk.BrightGreen + parts[0]) + (parts.Length > 1 ? " " + parts[1] : string.Empty));
+                    console.Out.WriteLine("$ " + (Chalk.BrightGreen + parts[0]) + (parts.Length > 1 ? " " + parts[1] : string.Empty));
                 }
             }
 

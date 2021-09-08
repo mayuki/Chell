@@ -359,7 +359,7 @@ namespace Chell
 
             if (_options.Verbosity.HasFlag(ChellVerbosity.CommandLine))
             {
-                CommandLineHelper.WriteCommandLineToConsole(CommandLine, _options.Verbosity);
+                CommandLineHelper.WriteCommandLineToConsole(_options.Console, CommandLine, _options.Verbosity);
             }
 
             try
