@@ -2,9 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using Chell.IO;
+using Chell.Shell;
 using FluentAssertions;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 using Xunit;
@@ -169,14 +171,32 @@ namespace Chell.Tests
         [Fact]
         public async Task CommandNotFound_UseShell()
         {
+            using var fakeConsoleScope = new FakeConsoleProviderScope();
             var dummyCommandName = Guid.NewGuid().ToString();
             var procTask = new ProcessTask($"{dummyCommandName} --help");
-            (await procTask.ExitCode).Should().Be(1); // A shell (bash, cmd, ...) will return 1.
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                (await procTask.ExitCode).Should().Be(1); // A shell (cmd) will return 1.
+            }
+            else
+            {
+                (await procTask.ExitCode).Should().Be(127); // A shell (bash) will return 127.
+            }
+        }
+
+        [Fact]
+        public async Task CommandNotFound_NoUseShell()
+        {
+            using var fakeConsoleScope = new FakeConsoleProviderScope();
+            var dummyCommandName = Guid.NewGuid().ToString();
+            var procTask = new ProcessTask($"{dummyCommandName} --help", new ProcessTaskOptions(shellExecutor: new NoUseShellExecutor()));
+            (await procTask.ExitCode).Should().Be(127); // System.Diagnostics.Process will return 127.
         }
 
         [Fact]
         public async Task Execute()
         {
+            using var fakeConsoleScope = new FakeConsoleProviderScope();
             var procTask = new ProcessTask($"{_fixture.HelloWorld.ExecutablePath}");
             (await procTask.ExitCode).Should().Be(0);
 
@@ -190,6 +210,7 @@ namespace Chell.Tests
         [Fact]
         public async Task ProcessOutputInArgumentShouldBeTrimmed()
         {
+            using var fakeConsoleScope = new FakeConsoleProviderScope();
             var procTask1 = new ProcessTask($"{_fixture.HelloWorld.ExecutablePath}");
             var result1 = await procTask1;
             var procTask2 = new ProcessTask($"{_fixture.EchoArg.ExecutablePath} {result1}");
@@ -202,6 +223,7 @@ namespace Chell.Tests
         [Fact]
         public async Task ExpandArguments()
         {
+            using var fakeConsoleScope = new FakeConsoleProviderScope();
             var args = new[] { "Alice", "Karen", "Program Files", @"C:\Program Files (x86)\Microsoft Visual Studio" };
             var procTask = new ProcessTask($"{_fixture.WriteCommandLineArgs.ExecutablePath} {args}");
             var result = await procTask;
@@ -213,6 +235,7 @@ namespace Chell.Tests
         [Fact]
         public async Task ExpandArguments_Escape()
         {
+            using var fakeConsoleScope = new FakeConsoleProviderScope();
             var args = new[] { "Alice", "Karen", "Program Files", @"C:\Program Files (x86)\Microsoft Visual Studio", "\"\\'|<>" };
             var procTask = new ProcessTask($"{_fixture.WriteCommandLineArgs.ExecutablePath} {args}");
             var result = await procTask;
@@ -224,6 +247,7 @@ namespace Chell.Tests
         [Fact]
         public async Task ExitCode()
         {
+            using var fakeConsoleScope = new FakeConsoleProviderScope();
             var procTask = new ProcessTask($"{_fixture.ExitCodeNonZero.ExecutablePath}");
             (await procTask.ExitCode).Should().Be(192);
         }
@@ -231,6 +255,7 @@ namespace Chell.Tests
         [Fact]
         public async Task ExitCode_ThrowIfNonZero()
         {
+            using var fakeConsoleScope = new FakeConsoleProviderScope();
             var procTask = new ProcessTask($"{_fixture.ExitCodeNonZero.ExecutablePath}");
             await Assert.ThrowsAsync<ProcessTaskException>(async () => await procTask);
         }
@@ -238,6 +263,7 @@ namespace Chell.Tests
         [Fact]
         public async Task ProcessOutput_StandardInputPassThroughText()
         {
+            using var fakeConsoleScope = new FakeConsoleProviderScope();
             var memStream = new MemoryStream(Encoding.UTF8.GetBytes("Hello, コンニチハ!\nABCDEFG"));
             var procTask = new ProcessTask(memStream, $"{_fixture.StandardInputPassThroughText.ExecutablePath}");
             var result = await procTask;
@@ -248,6 +274,7 @@ namespace Chell.Tests
         [Fact]
         public async Task ProcessOutput_StandardInputOutputCombined()
         {
+            using var fakeConsoleScope = new FakeConsoleProviderScope();
             var procTask = new ProcessTask($"{_fixture.EchoOutAndErrorArgs.ExecutablePath} Arg0 Arg1 Arg2 Arg3");
             var result = await procTask;
 
@@ -260,6 +287,7 @@ namespace Chell.Tests
         [Fact]
         public async Task ProcessOutput_StandardInputPassThroughBinary()
         {
+            using var fakeConsoleScope = new FakeConsoleProviderScope();
             var memStream = new MemoryStream(Encoding.Unicode.GetBytes("Hello, コンニチハ!\nABCDEFG"));
             var procTask = new ProcessTask(memStream, $"{_fixture.StandardInputPassThroughBinary.ExecutablePath}");
             var result = await procTask;
@@ -270,6 +298,7 @@ namespace Chell.Tests
         [Fact]
         public async Task Pipe_StandardInputPassThroughBinary()
         {
+            using var fakeConsoleScope = new FakeConsoleProviderScope();
             var data = Encoding.Unicode.GetBytes("Hello, コンニチハ!\nABCDEFG");
             var memStream = new MemoryStream(data);
             var procTask = new ProcessTask(memStream, $"{_fixture.StandardInputPassThroughBinary.ExecutablePath}");
@@ -284,6 +313,7 @@ namespace Chell.Tests
         [Fact]
         public async Task Pipe_CloseDestFirst()
         {
+            using var fakeConsoleScope = new FakeConsoleProviderScope();
             var srcTask = new ProcessTask($"{_fixture.WriteSleepWriteExit.ExecutablePath}");
             var destTask = new ProcessTask($"{_fixture.ReadOnce.ExecutablePath}");
 
@@ -293,6 +323,7 @@ namespace Chell.Tests
         [Fact]
         public async Task Pipe_CloseSrcFirst()
         {
+            using var fakeConsoleScope = new FakeConsoleProviderScope();
             var srcTask = new ProcessTask($"{_fixture.HelloWorld.ExecutablePath}");
             var destTask = new ProcessTask($"{_fixture.ReadAllLines.ExecutablePath}");
 
@@ -302,6 +333,7 @@ namespace Chell.Tests
         [Fact]
         public async Task Pipe_ExitCode_NonZero()
         {
+            using var fakeConsoleScope = new FakeConsoleProviderScope();
             var srcTask = new ProcessTask($"{_fixture.ExitCodeNonZero.ExecutablePath}");
             var destTask = new ProcessTask($"{_fixture.ReadAllLines.ExecutablePath}");
 
@@ -311,6 +343,7 @@ namespace Chell.Tests
         [Fact]
         public async Task Pipe_ExitCode_NonZero_NoThrow()
         {
+            using var fakeConsoleScope = new FakeConsoleProviderScope();
             var srcTask = new ProcessTask($"{_fixture.ExitCodeNonZero.ExecutablePath}");
             var destTask = new ProcessTask($"{_fixture.ReadAllLines.ExecutablePath}");
 
@@ -320,6 +353,7 @@ namespace Chell.Tests
         [Fact]
         public async Task WorkingDirectory()
         {
+            using var fakeConsoleScope = new FakeConsoleProviderScope();
             {
                 var currentDirectory = Environment.CurrentDirectory;
                 var output = await new ProcessTask($"{_fixture.WriteCurrentDirectory.ExecutablePath}");
@@ -336,6 +370,7 @@ namespace Chell.Tests
         [Fact]
         public async Task ProcessTimeout()
         {
+            using var fakeConsoleScope = new FakeConsoleProviderScope();
             await Assert.ThrowsAsync<OperationCanceledException>(async () =>
             {
                 await new ProcessTask($"{_fixture.WriteSleepWriteExit.ExecutablePath}",
@@ -346,6 +381,7 @@ namespace Chell.Tests
         [Fact]
         public async Task Verbosity_Silent()
         {
+            using var fakeConsoleScope = new FakeConsoleProviderScope();
             var (stdOut, stdErr) = await RunAsync(async (console) =>
             {
                 await new ProcessTask($"{_fixture.HelloWorld.ExecutablePath}", new ProcessTaskOptions(console: console).WithVerbosity(ChellVerbosity.Silent));
@@ -357,6 +393,7 @@ namespace Chell.Tests
         [Fact]
         public async Task Verbosity_CommandLine()
         {
+            using var fakeConsoleScope = new FakeConsoleProviderScope();
             var (stdOut, stdErr) = await RunAsync(async (console) =>
             {
                 await new ProcessTask($"{_fixture.HelloWorld.ExecutablePath}", new ProcessTaskOptions(console: console).WithVerbosity(ChellVerbosity.CommandLine));
@@ -369,12 +406,34 @@ namespace Chell.Tests
         [Fact]
         public async Task Verbosity_ConsoleOutputs()
         {
+            using var fakeConsoleScope = new FakeConsoleProviderScope();
             var (stdOut, stdErr) = await RunAsync(async (console) =>
             {
                 await new ProcessTask($"{_fixture.HelloWorld.ExecutablePath}", new ProcessTaskOptions(console: console).WithVerbosity(ChellVerbosity.ConsoleOutputs));
             });
 
             stdOut.Should().Be("Hello World!" + Environment.NewLine);
+        }
+
+        private class FakeConsoleProviderScope : IDisposable
+        {
+            private readonly IConsoleProvider _origConsoleProvider;
+            private readonly FakeConsoleProvider _fakeConsoleProvider;
+
+            public string StdOut => _fakeConsoleProvider.GetStandardOutputAsString();
+            public string StdErr => _fakeConsoleProvider.GetStandardErrorAsString();
+
+            public FakeConsoleProviderScope()
+            {
+                _origConsoleProvider = ChellEnvironment.Current.Console;
+                _fakeConsoleProvider = new FakeConsoleProvider();
+                ChellEnvironment.Current.Console = _fakeConsoleProvider;
+            }
+
+            public void Dispose()
+            {
+                ChellEnvironment.Current.Console = _origConsoleProvider;
+            }
         }
     }
 
