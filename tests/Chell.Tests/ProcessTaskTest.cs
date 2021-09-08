@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Chell.IO;
 using Chell.Shell;
 using FluentAssertions;
+using Kokuban;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 using Xunit;
 
@@ -402,7 +403,7 @@ namespace Chell.Tests
             });
 
             stdOut.Should().StartWith("$ ");
-            stdOut.Should().NotContain("Hello");
+            stdOut.Should().NotContain("Hello World!");
         }
 
         [Fact]
@@ -419,6 +420,7 @@ namespace Chell.Tests
 
         private class FakeConsoleProviderScope : IDisposable
         {
+            private readonly KokubanColorMode _origKokubanColorMode;
             private readonly IConsoleProvider _origConsoleProvider;
             private readonly FakeConsoleProvider _fakeConsoleProvider;
 
@@ -427,8 +429,11 @@ namespace Chell.Tests
 
             public FakeConsoleProviderScope()
             {
+                _origKokubanColorMode = KokubanOptions.Default.Mode;
                 _origConsoleProvider = ChellEnvironment.Current.Console;
                 _fakeConsoleProvider = new FakeConsoleProvider();
+
+                KokubanOptions.Default.Mode = KokubanColorMode.None;
                 ChellEnvironment.Current.Console = _fakeConsoleProvider;
             }
 
@@ -436,6 +441,7 @@ namespace Chell.Tests
             {
                 ChellEnvironment.Current.Console = _origConsoleProvider;
                 _fakeConsoleProvider.Dispose();
+                KokubanOptions.Default.Mode = _origKokubanColorMode;
             }
         }
     }
@@ -453,9 +459,9 @@ namespace Chell.Tests
         public FakeConsoleProvider()
         {
             _cts = new CancellationTokenSource();
-            _outputPipe = new Pipe();
+            _outputPipe = new Pipe(new PipeOptions(readerScheduler:PipeScheduler.Inline, writerScheduler:PipeScheduler.Inline));
             _outputPipe.Reader.CopyToAsync(_output, _cts.Token);
-            _errorPipe = new Pipe();
+            _errorPipe = new Pipe(new PipeOptions(readerScheduler: PipeScheduler.Inline, writerScheduler: PipeScheduler.Inline));
             _errorPipe.Reader.CopyToAsync(_error, _cts.Token);
         }
 
@@ -471,14 +477,14 @@ namespace Chell.Tests
         public Stream OpenStandardError()
             => _errorPipe.Writer.AsStream(leaveOpen: true);
 
-        public Encoding InputEncoding => Encoding.UTF8;
-        public Encoding OutputEncoding => Encoding.UTF8;
-        public Encoding ErrorEncoding => Encoding.UTF8;
+        public Encoding InputEncoding => new UTF8Encoding(false);
+        public Encoding OutputEncoding => new UTF8Encoding(false);
+        public Encoding ErrorEncoding => new UTF8Encoding(false);
         public bool IsInputRedirected => false;
         public bool IsOutputRedirected => false;
         public bool IsErrorRedirected => false;
-        public TextWriter Out => new StreamWriter(_output, OutputEncoding, leaveOpen: true);
-        public TextWriter Error => new StreamWriter(_error, ErrorEncoding, leaveOpen: true);
+        public TextWriter Out => new StreamWriter(_outputPipe.Writer.AsStream(leaveOpen: true), OutputEncoding, leaveOpen: true) { AutoFlush = true };
+        public TextWriter Error => new StreamWriter(_errorPipe.Writer.AsStream(leaveOpen: true), ErrorEncoding, leaveOpen: true) { AutoFlush = true };
         public void Dispose()
         {
             _cts.Cancel();
