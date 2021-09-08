@@ -70,7 +70,7 @@ namespace Chell.Tests
             ExitCodeNonZero = TemporaryAppBuilder.Create(nameof(ExitCodeNonZero))
                 .WriteSourceFile("Program.cs", @"
                     using System;
-                    Environment.ExitCode = 456;
+                    Environment.ExitCode = 192;
                 ")
                 .Build()
                 .AddTo(_disposables);
@@ -225,7 +225,7 @@ namespace Chell.Tests
         public async Task ExitCode()
         {
             var procTask = new ProcessTask($"{_fixture.ExitCodeNonZero.ExecutablePath}");
-            (await procTask.ExitCode).Should().Be(456);
+            (await procTask.ExitCode).Should().Be(192);
         }
 
         [Fact]
