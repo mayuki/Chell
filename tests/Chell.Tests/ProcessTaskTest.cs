@@ -11,103 +11,139 @@ using Xunit;
 
 namespace Chell.Tests
 {
+    internal static class ProcessTaskTestFixtureExtensions
+    {
+        public static TemporaryAppBuilder.Compilation AddTo(this TemporaryAppBuilder.Compilation compilation,
+            IList<IDisposable> disposables)
+        {
+            disposables.Add(compilation);
+            return compilation;
+        }
+    }
+
     public class ProcessTaskTestFixture : IDisposable
     {
-        public TemporaryAppBuilder.Compilation EchoArg = TemporaryAppBuilder.Create(nameof(EchoArg))
-            .WriteSourceFile("Program.cs", @"
-                using System;
-                Console.WriteLine(""["" + Environment.GetCommandLineArgs()[1] + ""]"");
-            ")
-            .Build();
-        public TemporaryAppBuilder.Compilation EchoOutAndErrorArgs = TemporaryAppBuilder.Create(nameof(EchoOutAndErrorArgs))
-            .WriteSourceFile("Program.cs", @"
-                using System;
-                using System.Threading.Tasks;
-                Console.Out.WriteLine(""["" + Environment.GetCommandLineArgs()[1] + ""]"");
-                await Task.Delay(100);
-                Console.Error.WriteLine(""["" + Environment.GetCommandLineArgs()[2] + ""]"");
-                await Task.Delay(100);
-                Console.Out.WriteLine(""["" + Environment.GetCommandLineArgs()[3] + ""]"");
-                await Task.Delay(100);
-                Console.Error.WriteLine(""["" + Environment.GetCommandLineArgs()[4] + ""]"");
-            ")
-            .Build();
-        public TemporaryAppBuilder.Compilation HelloWorld = TemporaryAppBuilder.Create(nameof(HelloWorld))
-            .WriteSourceFile("Program.cs", @"
-                using System;
-                Console.WriteLine(""Hello World!"");
-            ")
-            .Build();
-        public TemporaryAppBuilder.Compilation ExitCodeNonZero = TemporaryAppBuilder.Create(nameof(ExitCodeNonZero))
-            .WriteSourceFile("Program.cs", @"
-                using System;
-                Environment.ExitCode = 456;
-            ")
-            .Build();
-        public TemporaryAppBuilder.Compilation WriteCommandLineArgs = TemporaryAppBuilder.Create(nameof(WriteCommandLineArgs))
-            .WriteSourceFile("Program.cs", @"
-                using System;
-                foreach (var line in Environment.GetCommandLineArgs())
-                {
-                    Console.WriteLine(line);
-                }
-            ")
-            .Build();
-        public TemporaryAppBuilder.Compilation StandardInputPassThroughText = TemporaryAppBuilder.Create(nameof(StandardInputPassThroughText))
-            .WriteSourceFile("Program.cs", @"
-                using System;
-                Console.InputEncoding = System.Text.Encoding.UTF8;
-                Console.OutputEncoding = System.Text.Encoding.UTF8;
-                Console.Write(Console.In.ReadToEnd());
-            ")
-            .Build();
-        public TemporaryAppBuilder.Compilation StandardInputPassThroughBinary = TemporaryAppBuilder.Create(nameof(StandardInputPassThroughBinary))
-            .WriteSourceFile("Program.cs", @"
-                using System;
-                Console.OpenStandardInput().CopyTo(Console.OpenStandardOutput());
-            ")
-            .Build();
-        public TemporaryAppBuilder.Compilation WriteSleepWriteExit = TemporaryAppBuilder.Create(nameof(WriteSleepWriteExit))
-            .WriteSourceFile("Program.cs", @"
-                using System;
-                using System.Threading;
-                Console.WriteLine(""Hello"");
-                Thread.Sleep(1000);
-                Console.WriteLine(""Hello"");
-            ")
-            .Build();
-        public TemporaryAppBuilder.Compilation ReadOnce = TemporaryAppBuilder.Create(nameof(ReadOnce))
-            .WriteSourceFile("Program.cs", @"
-                using System;
-                Console.WriteLine(Console.ReadLine());
-            ")
-            .Build();
-        public TemporaryAppBuilder.Compilation ReadAllLines = TemporaryAppBuilder.Create(nameof(ReadAllLines))
-            .WriteSourceFile("Program.cs", @"
-                using System;
-                while (true)
-                {
-                    var line = Console.ReadLine();
-                    if (line == null) return;
-                    Console.WriteLine(line);
-                }
-            ")
-            .Build();
-        public TemporaryAppBuilder.Compilation WriteCurrentDirectory = TemporaryAppBuilder.Create(nameof(WriteCurrentDirectory))
-            .WriteSourceFile("Program.cs", @"
-                using System;
-                Console.WriteLine(Environment.CurrentDirectory);
-            ")
-            .Build();
+        private readonly List<IDisposable> _disposables = new List<IDisposable>();
+
+        public TemporaryAppBuilder.Compilation EchoArg { get; }
+        public TemporaryAppBuilder.Compilation EchoOutAndErrorArgs { get; }
+        public TemporaryAppBuilder.Compilation HelloWorld { get; }
+        public TemporaryAppBuilder.Compilation ExitCodeNonZero { get; }
+        public TemporaryAppBuilder.Compilation WriteCommandLineArgs { get; }
+        public TemporaryAppBuilder.Compilation StandardInputPassThroughText { get; }
+        public TemporaryAppBuilder.Compilation StandardInputPassThroughBinary { get; }
+        public TemporaryAppBuilder.Compilation WriteSleepWriteExit { get; }
+        public TemporaryAppBuilder.Compilation ReadOnce { get; }
+        public TemporaryAppBuilder.Compilation ReadAllLines { get; }
+        public TemporaryAppBuilder.Compilation WriteCurrentDirectory { get; }
+
+        public ProcessTaskTestFixture()
+        {
+            EchoArg = TemporaryAppBuilder.Create(nameof(EchoArg))
+                .WriteSourceFile("Program.cs", @"
+                    using System;
+                    Console.WriteLine(""["" + Environment.GetCommandLineArgs()[1] + ""]"");
+                ")
+                .Build()
+                .AddTo(_disposables);
+            EchoOutAndErrorArgs = TemporaryAppBuilder.Create(nameof(EchoOutAndErrorArgs))
+                .WriteSourceFile("Program.cs", @"
+                    using System;
+                    using System.Threading.Tasks;
+                    Console.Out.WriteLine(""["" + Environment.GetCommandLineArgs()[1] + ""]"");
+                    await Task.Delay(100);
+                    Console.Error.WriteLine(""["" + Environment.GetCommandLineArgs()[2] + ""]"");
+                    await Task.Delay(100);
+                    Console.Out.WriteLine(""["" + Environment.GetCommandLineArgs()[3] + ""]"");
+                    await Task.Delay(100);
+                    Console.Error.WriteLine(""["" + Environment.GetCommandLineArgs()[4] + ""]"");
+                ")
+                .Build()
+                .AddTo(_disposables);
+            HelloWorld = TemporaryAppBuilder.Create(nameof(HelloWorld))
+                .WriteSourceFile("Program.cs", @"
+                    using System;
+                    Console.WriteLine(""Hello World!"");
+                ")
+                .Build()
+                .AddTo(_disposables);
+            ExitCodeNonZero = TemporaryAppBuilder.Create(nameof(ExitCodeNonZero))
+                .WriteSourceFile("Program.cs", @"
+                    using System;
+                    Environment.ExitCode = 456;
+                ")
+                .Build()
+                .AddTo(_disposables);
+            WriteCommandLineArgs = TemporaryAppBuilder.Create(nameof(WriteCommandLineArgs))
+                .WriteSourceFile("Program.cs", @"
+                    using System;
+                    foreach (var line in Environment.GetCommandLineArgs())
+                    {
+                        Console.WriteLine(line);
+                    }
+                ")
+                .Build()
+                .AddTo(_disposables);
+            StandardInputPassThroughText = TemporaryAppBuilder.Create(nameof(StandardInputPassThroughText))
+                .WriteSourceFile("Program.cs", @"
+                    using System;
+                    Console.InputEncoding = System.Text.Encoding.UTF8;
+                    Console.OutputEncoding = System.Text.Encoding.UTF8;
+                    Console.Write(Console.In.ReadToEnd());
+                ")
+                .Build()
+                .AddTo(_disposables);
+            StandardInputPassThroughBinary = TemporaryAppBuilder.Create(nameof(StandardInputPassThroughBinary))
+                .WriteSourceFile("Program.cs", @"
+                    using System;
+                    Console.OpenStandardInput().CopyTo(Console.OpenStandardOutput());
+                ")
+                .Build()
+                .AddTo(_disposables);
+            WriteSleepWriteExit = TemporaryAppBuilder.Create(nameof(WriteSleepWriteExit))
+                .WriteSourceFile("Program.cs", @"
+                    using System;
+                    using System.Threading;
+                    Console.WriteLine(""Hello"");
+                    Thread.Sleep(1000);
+                    Console.WriteLine(""Hello"");
+                ")
+                .Build()
+                .AddTo(_disposables);
+            ReadOnce = TemporaryAppBuilder.Create(nameof(ReadOnce))
+                .WriteSourceFile("Program.cs", @"
+                    using System;
+                    Console.WriteLine(Console.ReadLine());
+                ")
+                .Build()
+                .AddTo(_disposables);
+            ReadAllLines = TemporaryAppBuilder.Create(nameof(ReadAllLines))
+                .WriteSourceFile("Program.cs", @"
+                    using System;
+                    while (true)
+                    {
+                        var line = Console.ReadLine();
+                        if (line == null) return;
+                        Console.WriteLine(line);
+                    }
+                ")
+                .Build()
+                .AddTo(_disposables);
+            WriteCurrentDirectory = TemporaryAppBuilder.Create(nameof(WriteCurrentDirectory))
+                .WriteSourceFile("Program.cs", @"
+                    using System;
+                    Console.WriteLine(Environment.CurrentDirectory);
+                ")
+                .Build()
+                .AddTo(_disposables);
+        }
 
         public void Dispose()
         {
-            EchoArg.Dispose();
-            HelloWorld.Dispose();
-            ExitCodeNonZero.Dispose();
-            WriteCommandLineArgs.Dispose();
-            StandardInputPassThroughText.Dispose();
-            StandardInputPassThroughBinary.Dispose();
+            foreach (var disposable in _disposables)
+            {
+                disposable.Dispose();
+            }
         }
     }
 
