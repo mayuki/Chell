@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Pipelines;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Chell.IO;
 using Chell.Shell;
@@ -433,15 +435,29 @@ namespace Chell.Tests
             public void Dispose()
             {
                 ChellEnvironment.Current.Console = _origConsoleProvider;
+                _fakeConsoleProvider.Dispose();
             }
         }
     }
 
-    public class FakeConsoleProvider : IConsoleProvider
+    public class FakeConsoleProvider : IConsoleProvider, IDisposable
     {
+        private readonly Pipe _outputPipe;
+        private readonly Pipe _errorPipe;
+        private readonly CancellationTokenSource _cts;
+
         private readonly MemoryStream _input = new MemoryStream();
         private readonly MemoryStream _output = new MemoryStream();
         private readonly MemoryStream _error = new MemoryStream();
+
+        public FakeConsoleProvider()
+        {
+            _cts = new CancellationTokenSource();
+            _outputPipe = new Pipe();
+            _outputPipe.Reader.CopyToAsync(_output, _cts.Token);
+            _errorPipe = new Pipe();
+            _errorPipe.Reader.CopyToAsync(_error, _cts.Token);
+        }
 
         public string GetStandardOutputAsString() => Encoding.UTF8.GetString(_output.ToArray());
         public string GetStandardErrorAsString() => Encoding.UTF8.GetString(_error.ToArray());
@@ -450,10 +466,10 @@ namespace Chell.Tests
             => _input;
 
         public Stream OpenStandardOutput()
-            => _output;
+            => _outputPipe.Writer.AsStream(leaveOpen: true);
 
         public Stream OpenStandardError()
-            => _error;
+            => _errorPipe.Writer.AsStream(leaveOpen: true);
 
         public Encoding InputEncoding => Encoding.UTF8;
         public Encoding OutputEncoding => Encoding.UTF8;
@@ -463,5 +479,9 @@ namespace Chell.Tests
         public bool IsErrorRedirected => false;
         public TextWriter Out => new StreamWriter(_output, OutputEncoding, leaveOpen: true);
         public TextWriter Error => new StreamWriter(_error, ErrorEncoding, leaveOpen: true);
+        public void Dispose()
+        {
+            _cts.Cancel();
+        }
     }
 }
