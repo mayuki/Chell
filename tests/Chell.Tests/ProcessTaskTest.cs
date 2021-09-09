@@ -34,6 +34,7 @@ namespace Chell.Tests
         public TemporaryAppBuilder.Compilation EchoOutAndErrorArgs { get; }
         public TemporaryAppBuilder.Compilation HelloWorld { get; }
         public TemporaryAppBuilder.Compilation ExitCodeNonZero { get; }
+        public TemporaryAppBuilder.Compilation ExitCodeNonZeroWaited { get; }
         public TemporaryAppBuilder.Compilation WriteCommandLineArgs { get; }
         public TemporaryAppBuilder.Compilation StandardInputPassThroughText { get; }
         public TemporaryAppBuilder.Compilation StandardInputPassThroughBinary { get; }
@@ -75,6 +76,15 @@ namespace Chell.Tests
             ExitCodeNonZero = TemporaryAppBuilder.Create(nameof(ExitCodeNonZero))
                 .WriteSourceFile("Program.cs", @"
                     using System;
+                    Environment.ExitCode = 192;
+                ")
+                .Build()
+                .AddTo(_disposables);
+            ExitCodeNonZeroWaited = TemporaryAppBuilder.Create(nameof(ExitCodeNonZeroWaited))
+                .WriteSourceFile("Program.cs", @"
+                    using System;
+                    using System.Threading.Tasks;
+                    await Task.Delay(100);
                     Environment.ExitCode = 192;
                 ")
                 .Build()
@@ -338,6 +348,16 @@ namespace Chell.Tests
         {
             using var fakeConsoleScope = new FakeConsoleProviderScope();
             var srcTask = new ProcessTask($"{_fixture.ExitCodeNonZero.ExecutablePath}");
+            var destTask = new ProcessTask($"{_fixture.ReadAllLines.ExecutablePath}");
+
+            await Assert.ThrowsAsync<ProcessTaskException>(async () => await (srcTask | destTask));
+        }
+        
+        [Fact]
+        public async Task Pipe_ExitCode_NonZero_ExitTailFirst()
+        {
+            using var fakeConsoleScope = new FakeConsoleProviderScope();
+            var srcTask = new ProcessTask($"{_fixture.ExitCodeNonZeroWaited.ExecutablePath}");
             var destTask = new ProcessTask($"{_fixture.ReadAllLines.ExecutablePath}");
 
             await Assert.ThrowsAsync<ProcessTaskException>(async () => await (srcTask | destTask));

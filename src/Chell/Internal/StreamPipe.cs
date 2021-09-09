@@ -167,7 +167,15 @@ namespace Chell.Internal
                         _ => throw new NotSupportedException()
                     };
 
-                    await writeTask.ConfigureAwait(false);
+                    // NOTE: The destination may be closed first.
+                    //       When the destination is closed, the task throws an IOException (Broken pipe).
+                    try
+                    {
+                        await writeTask.ConfigureAwait(false);
+                    }
+                    catch (IOException)
+                    {
+                    }
                 })).ConfigureAwait(false);
 
                 _pipe.Reader.AdvanceTo(result.Buffer.End);

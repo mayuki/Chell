@@ -430,12 +430,12 @@ namespace Chell
             }
         }
 
-        private async Task ThrowIfParentTaskHasThrownProcessException()
+        private async Task ThrowIfParentTaskHasThrownProcessException(bool awaitForComplete)
         {
             if (PreviousTask != null)
             {
                 // First, throw an exception for the parent task.
-                await PreviousTask.ThrowIfParentTaskHasThrownProcessException().ConfigureAwait(false);
+                await PreviousTask.ThrowIfParentTaskHasThrownProcessException(awaitForComplete).ConfigureAwait(false);
 
                 // Second, Start the process.
                 PreviousTask.EnsureProcess();
@@ -446,12 +446,17 @@ namespace Chell
                 {
                     await t.ConfigureAwait(false);
                 }
+
+                if (!t.IsCompleted && awaitForComplete)
+                {
+                    await t.ConfigureAwait(false);
+                }
             }
         }
 
         private async Task<ProcessOutput> AsTaskCore()
         {
-            await ThrowIfParentTaskHasThrownProcessException().ConfigureAwait(false);
+            await ThrowIfParentTaskHasThrownProcessException(awaitForComplete:false).ConfigureAwait(false);
 
             EnsureProcess();
 
@@ -499,7 +504,7 @@ namespace Chell
                 await _output.Sink.CompleteAsync().ConfigureAwait(false);
                 WriteDebugTrace($"Pipe/Sink.CompleteAsync:Done: Pid={proc.Id}");
 
-                await ThrowIfParentTaskHasThrownProcessException().ConfigureAwait(false);
+                await ThrowIfParentTaskHasThrownProcessException(awaitForComplete: true).ConfigureAwait(false);
 
                 if (_output.ExitCode != 0)
                 {
