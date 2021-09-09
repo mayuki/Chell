@@ -40,7 +40,21 @@ namespace Chell.Tests
             Directory.CreateDirectory(OutputDirectory);
 
             // Create .NET Console App project.
-            RunInSourceDirectory("dotnet", $"new console -n {ProjectName} -o .");
+            RunInSourceDirectory("dotnet", $"new console -f net5.0 -n {ProjectName} -o .");
+            // Explicitly use .NET 5 SDK. (AppHost is required for macOS with .NET 5 SDK)
+            WriteSourceFile("global.json",
+                @"{
+                    ""sdk"": {
+                        ""version"": ""5.0.100"",
+                        ""rollForward"": ""latestFeature""
+                    }
+                }");
+            WriteSourceFile("Directory.Build.props",
+                @"<Project ToolsVersion=""15.0"" xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"">
+                    <PropertyGroup>
+                        <UseAppHost>true</UseAppHost>
+                    </PropertyGroup>
+                </Project>");
         }
 
         public TemporaryAppBuilder WriteSourceFile(string fileName, string content)
