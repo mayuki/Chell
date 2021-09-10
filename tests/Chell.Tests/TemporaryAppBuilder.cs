@@ -8,6 +8,61 @@ using System.Threading.Tasks;
 
 namespace Chell.Tests
 {
+    public class TemporaryAppSolutionBuilder : IDisposable
+    {
+        private readonly List<TemporaryAppBuilder> _apps;
+        public string BaseDirectory { get; }
+
+        public TemporaryAppSolutionBuilder()
+        {
+            _apps = new List<TemporaryAppBuilder>();
+            BaseDirectory = Path.Combine(Path.GetTempPath(), $"Chell.Tests-{Guid.NewGuid()}");
+        }
+
+        public string CreateProject(string projectName, Action<TemporaryAppBuilder> configure)
+        {
+            var builder = TemporaryAppBuilder.Create(BaseDirectory, projectName);
+            _apps.Add(builder);
+            configure(builder);
+            return Path.Combine(BaseDirectory, "out", projectName);
+        }
+        
+        public TemporaryAppSolutionBuilder RunInSolutionDirectory(string fileName, string arguments)
+        {
+            var procStartInfo = new ProcessStartInfo()
+            {
+                FileName = fileName,
+                Arguments =  arguments,
+                WorkingDirectory = BaseDirectory,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+            };
+
+            var proc = Process.Start(procStartInfo)!;
+            proc.WaitForExit();
+            var standardOutput = proc.StandardOutput.ReadToEnd();
+            var standardError = proc.StandardError.ReadToEnd();
+
+            if (proc.ExitCode != 0)
+            {
+                throw new InvalidOperationException(string.Join(Environment.NewLine, $"The process has been exited with code {proc.ExitCode}. (FileName={fileName}, Arguments={arguments}", "Output:", standardOutput, "Error:", standardError));
+            }
+
+            return this;
+        }
+        
+        public void Build()
+        {
+            RunInSolutionDirectory("dotnet", "new sln");
+            RunInSolutionDirectory("dotnet", $"sln add {string.Join(" ", _apps.Select(x => x.ProjectName + "/src"))}");
+            RunInSolutionDirectory("dotnet", "publish -o out");
+        }
+        
+        public void Dispose()
+        {
+            Directory.Delete(BaseDirectory, recursive:true);
+        }
+    }
     public class TemporaryAppBuilder : IDisposable
     {
         private bool _disposed;
@@ -18,17 +73,17 @@ namespace Chell.Tests
         public string SourceDirectory { get; }
         public string OutputDirectory { get; }
 
-        private TemporaryAppBuilder(string projectName)
+        private TemporaryAppBuilder(string baseSlnDirectory, string projectName)
         {
             ProjectName = projectName;
-            BaseDirectory = Path.Combine(Path.GetTempPath(), $"Chell.Tests-{Guid.NewGuid()}");
+            BaseDirectory = Path.Combine(baseSlnDirectory, projectName);
             SourceDirectory = Path.Combine(BaseDirectory, $"src");
             OutputDirectory = Path.Combine(BaseDirectory, $"out");
         }
 
-        public static TemporaryAppBuilder Create(string projectName)
+        public static TemporaryAppBuilder Create(string baseSlnDirectory, string projectName)
         {
-            var builder = new TemporaryAppBuilder(projectName);
+            var builder = new TemporaryAppBuilder(baseSlnDirectory, projectName);
             builder.Initialize();
             return builder;
         }
@@ -40,7 +95,7 @@ namespace Chell.Tests
             Directory.CreateDirectory(OutputDirectory);
 
             // Create .NET Console App project.
-            RunInSourceDirectory("dotnet", $"new console -f net5.0 -n {ProjectName} -o .");
+            //RunInSourceDirectory("dotnet", $"new console -f net5.0 -n {ProjectName} -o .");
             // Explicitly use .NET 5 SDK. (AppHost is required for macOS with .NET 5 SDK)
             WriteSourceFile("global.json",
                 @"{
@@ -49,6 +104,13 @@ namespace Chell.Tests
                         ""rollForward"": ""latestFeature""
                     }
                 }");
+            WriteSourceFile($"{ProjectName}.csproj",
+                @"<Project Sdk=""Microsoft.NET.Sdk"">
+                    <PropertyGroup>
+                        <OutputType>Exe</OutputType>
+                        <TargetFramework>net5.0</TargetFramework>
+                    </PropertyGroup>
+                </Project>");
             WriteSourceFile("Directory.Build.props",
                 @"<Project ToolsVersion=""15.0"" xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"">
                     <PropertyGroup>
@@ -62,6 +124,9 @@ namespace Chell.Tests
             File.WriteAllText(Path.Combine(SourceDirectory, fileName), content, Encoding.UTF8);
             return this;
         }
+
+        public string GetExecutablePath()
+            => Path.Combine(OutputDirectory, ProjectName);
 
         public Compilation Build()
         {

@@ -28,32 +28,29 @@ namespace Chell.Tests
 
     public class ProcessTaskTestFixture : IDisposable
     {
-        private readonly List<IDisposable> _disposables = new List<IDisposable>();
-
-        public TemporaryAppBuilder.Compilation EchoArg { get; }
-        public TemporaryAppBuilder.Compilation EchoOutAndErrorArgs { get; }
-        public TemporaryAppBuilder.Compilation HelloWorld { get; }
-        public TemporaryAppBuilder.Compilation ExitCodeNonZero { get; }
-        public TemporaryAppBuilder.Compilation ExitCodeNonZeroWaited { get; }
-        public TemporaryAppBuilder.Compilation WriteCommandLineArgs { get; }
-        public TemporaryAppBuilder.Compilation StandardInputPassThroughText { get; }
-        public TemporaryAppBuilder.Compilation StandardInputPassThroughBinary { get; }
-        public TemporaryAppBuilder.Compilation WriteSleepWriteExit { get; }
-        public TemporaryAppBuilder.Compilation ReadOnce { get; }
-        public TemporaryAppBuilder.Compilation ReadAllLines { get; }
-        public TemporaryAppBuilder.Compilation WriteCurrentDirectory { get; }
+        private readonly TemporaryAppSolutionBuilder _slnBuilder = new TemporaryAppSolutionBuilder();
+        public string EchoArg { get; }
+        public string EchoOutAndErrorArgs { get; }
+        public string HelloWorld { get; }
+        public string ExitCodeNonZero { get; }
+        public string ExitCodeNonZeroWaited { get; }
+        public string WriteCommandLineArgs { get; }
+        public string StandardInputPassThroughText { get; }
+        public string StandardInputPassThroughBinary { get; }
+        public string WriteSleepWriteExit { get; }
+        public string ReadOnce { get; }
+        public string ReadAllLines { get; }
+        public string WriteCurrentDirectory { get; }
 
         public ProcessTaskTestFixture()
         {
-            EchoArg = TemporaryAppBuilder.Create(nameof(EchoArg))
-                .WriteSourceFile("Program.cs", @"
+            EchoArg = _slnBuilder.CreateProject(nameof(EchoArg), builder =>
+                builder.WriteSourceFile("Program.cs", @"
                     using System;
                     Console.WriteLine(""["" + Environment.GetCommandLineArgs()[1] + ""]"");
-                ")
-                .Build()
-                .AddTo(_disposables);
-            EchoOutAndErrorArgs = TemporaryAppBuilder.Create(nameof(EchoOutAndErrorArgs))
-                .WriteSourceFile("Program.cs", @"
+                "));
+            EchoOutAndErrorArgs = _slnBuilder.CreateProject(nameof(EchoOutAndErrorArgs), builder =>
+                builder.WriteSourceFile("Program.cs", @"
                     using System;
                     using System.Threading.Tasks;
                     Console.Out.WriteLine(""["" + Environment.GetCommandLineArgs()[1] + ""]"");
@@ -63,77 +60,59 @@ namespace Chell.Tests
                     Console.Out.WriteLine(""["" + Environment.GetCommandLineArgs()[3] + ""]"");
                     await Task.Delay(100);
                     Console.Error.WriteLine(""["" + Environment.GetCommandLineArgs()[4] + ""]"");
-                ")
-                .Build()
-                .AddTo(_disposables);
-            HelloWorld = TemporaryAppBuilder.Create(nameof(HelloWorld))
-                .WriteSourceFile("Program.cs", @"
+                "));
+            HelloWorld = _slnBuilder.CreateProject(nameof(HelloWorld), builder =>
+                builder.WriteSourceFile("Program.cs", @"
                     using System;
                     Console.WriteLine(""Hello World!"");
-                ")
-                .Build()
-                .AddTo(_disposables);
-            ExitCodeNonZero = TemporaryAppBuilder.Create(nameof(ExitCodeNonZero))
-                .WriteSourceFile("Program.cs", @"
+                "));
+            ExitCodeNonZero = _slnBuilder.CreateProject(nameof(ExitCodeNonZero), builder =>
+                builder.WriteSourceFile("Program.cs", @"
                     using System;
                     Environment.ExitCode = 192;
-                ")
-                .Build()
-                .AddTo(_disposables);
-            ExitCodeNonZeroWaited = TemporaryAppBuilder.Create(nameof(ExitCodeNonZeroWaited))
-                .WriteSourceFile("Program.cs", @"
+                "));
+            ExitCodeNonZeroWaited = _slnBuilder.CreateProject(nameof(ExitCodeNonZeroWaited), builder => 
+                builder.WriteSourceFile("Program.cs", @"
                     using System;
                     using System.Threading.Tasks;
                     await Task.Delay(100);
                     Environment.ExitCode = 192;
-                ")
-                .Build()
-                .AddTo(_disposables);
-            WriteCommandLineArgs = TemporaryAppBuilder.Create(nameof(WriteCommandLineArgs))
-                .WriteSourceFile("Program.cs", @"
+                "));
+            WriteCommandLineArgs = _slnBuilder.CreateProject(nameof(WriteCommandLineArgs), builder =>
+                builder.WriteSourceFile("Program.cs", @"
                     using System;
                     foreach (var line in Environment.GetCommandLineArgs())
                     {
                         Console.WriteLine(line);
                     }
-                ")
-                .Build()
-                .AddTo(_disposables);
-            StandardInputPassThroughText = TemporaryAppBuilder.Create(nameof(StandardInputPassThroughText))
-                .WriteSourceFile("Program.cs", @"
+                "));
+            StandardInputPassThroughText = _slnBuilder.CreateProject(nameof(StandardInputPassThroughText), builder =>
+                builder.WriteSourceFile("Program.cs", @"
                     using System;
                     Console.InputEncoding = System.Text.Encoding.UTF8;
                     Console.OutputEncoding = System.Text.Encoding.UTF8;
                     Console.Write(Console.In.ReadToEnd());
-                ")
-                .Build()
-                .AddTo(_disposables);
-            StandardInputPassThroughBinary = TemporaryAppBuilder.Create(nameof(StandardInputPassThroughBinary))
-                .WriteSourceFile("Program.cs", @"
+                "));
+            StandardInputPassThroughBinary = _slnBuilder.CreateProject(nameof(StandardInputPassThroughBinary), builder =>
+                builder.WriteSourceFile("Program.cs", @"
                     using System;
                     Console.OpenStandardInput().CopyTo(Console.OpenStandardOutput());
-                ")
-                .Build()
-                .AddTo(_disposables);
-            WriteSleepWriteExit = TemporaryAppBuilder.Create(nameof(WriteSleepWriteExit))
-                .WriteSourceFile("Program.cs", @"
+                "));
+            WriteSleepWriteExit = _slnBuilder.CreateProject(nameof(WriteSleepWriteExit), builder =>
+                builder.WriteSourceFile("Program.cs", @"
                     using System;
                     using System.Threading;
                     Console.WriteLine(""Hello"");
                     Thread.Sleep(1000);
                     Console.WriteLine(""Hello"");
-                ")
-                .Build()
-                .AddTo(_disposables);
-            ReadOnce = TemporaryAppBuilder.Create(nameof(ReadOnce))
-                .WriteSourceFile("Program.cs", @"
+                "));
+            ReadOnce = _slnBuilder.CreateProject(nameof(ReadOnce), builder =>
+                builder.WriteSourceFile("Program.cs", @"
                     using System;
                     Console.WriteLine(Console.ReadLine());
-                ")
-                .Build()
-                .AddTo(_disposables);
-            ReadAllLines = TemporaryAppBuilder.Create(nameof(ReadAllLines))
-                .WriteSourceFile("Program.cs", @"
+                "));
+            ReadAllLines = _slnBuilder.CreateProject(nameof(ReadAllLines), builder =>
+                builder.WriteSourceFile("Program.cs", @"
                     using System;
                     while (true)
                     {
@@ -141,24 +120,19 @@ namespace Chell.Tests
                         if (line == null) return;
                         Console.WriteLine(line);
                     }
-                ")
-                .Build()
-                .AddTo(_disposables);
-            WriteCurrentDirectory = TemporaryAppBuilder.Create(nameof(WriteCurrentDirectory))
-                .WriteSourceFile("Program.cs", @"
+                "));
+            WriteCurrentDirectory = _slnBuilder.CreateProject(nameof(WriteCurrentDirectory), builder =>
+                builder.WriteSourceFile("Program.cs", @"
                     using System;
                     Console.WriteLine(Environment.CurrentDirectory);
-                ")
-                .Build()
-                .AddTo(_disposables);
+                "));
+            
+            _slnBuilder.Build();
         }
 
         public void Dispose()
         {
-            foreach (var disposable in _disposables)
-            {
-                disposable.Dispose();
-            }
+            _slnBuilder.Dispose();
         }
     }
 
@@ -210,7 +184,7 @@ namespace Chell.Tests
         public async Task Execute()
         {
             using var fakeConsoleScope = new FakeConsoleProviderScope();
-            var procTask = new ProcessTask($"{_fixture.HelloWorld.ExecutablePath}");
+            var procTask = new ProcessTask($"{_fixture.HelloWorld}");
             (await procTask.ExitCode).Should().Be(0);
 
             var result = await procTask;
@@ -224,9 +198,9 @@ namespace Chell.Tests
         public async Task ProcessOutputInArgumentShouldBeTrimmed()
         {
             using var fakeConsoleScope = new FakeConsoleProviderScope();
-            var procTask1 = new ProcessTask($"{_fixture.HelloWorld.ExecutablePath}");
+            var procTask1 = new ProcessTask($"{_fixture.HelloWorld}");
             var result1 = await procTask1;
-            var procTask2 = new ProcessTask($"{_fixture.EchoArg.ExecutablePath} {result1}");
+            var procTask2 = new ProcessTask($"{_fixture.EchoArg} {result1}");
             var result2 = await procTask2;
 
             result1.Combined.Should().Be("Hello World!" + Environment.NewLine);
@@ -238,7 +212,7 @@ namespace Chell.Tests
         {
             using var fakeConsoleScope = new FakeConsoleProviderScope();
             var args = new[] { "Alice", "Karen", "Program Files", @"C:\Program Files (x86)\Microsoft Visual Studio" };
-            var procTask = new ProcessTask($"{_fixture.WriteCommandLineArgs.ExecutablePath} {args}");
+            var procTask = new ProcessTask($"{_fixture.WriteCommandLineArgs} {args}");
             var result = await procTask;
 
             // NOTE: We need skip the first line which is path of the command.
@@ -250,7 +224,7 @@ namespace Chell.Tests
         {
             using var fakeConsoleScope = new FakeConsoleProviderScope();
             var args = new[] { "Alice", "Karen", "Program Files", @"C:\Program Files (x86)\Microsoft Visual Studio", "\"\\'|<>" };
-            var procTask = new ProcessTask($"{_fixture.WriteCommandLineArgs.ExecutablePath} {args}");
+            var procTask = new ProcessTask($"{_fixture.WriteCommandLineArgs} {args}");
             var result = await procTask;
 
             // NOTE: We need skip the first line which is path of the command.
@@ -261,7 +235,7 @@ namespace Chell.Tests
         public async Task ExitCode()
         {
             using var fakeConsoleScope = new FakeConsoleProviderScope();
-            var procTask = new ProcessTask($"{_fixture.ExitCodeNonZero.ExecutablePath}");
+            var procTask = new ProcessTask($"{_fixture.ExitCodeNonZero}");
             (await procTask.ExitCode).Should().Be(192);
         }
 
@@ -269,7 +243,7 @@ namespace Chell.Tests
         public async Task ExitCode_ThrowIfNonZero()
         {
             using var fakeConsoleScope = new FakeConsoleProviderScope();
-            var procTask = new ProcessTask($"{_fixture.ExitCodeNonZero.ExecutablePath}");
+            var procTask = new ProcessTask($"{_fixture.ExitCodeNonZero}");
             await Assert.ThrowsAsync<ProcessTaskException>(async () => await procTask);
         }
 
@@ -278,7 +252,7 @@ namespace Chell.Tests
         {
             using var fakeConsoleScope = new FakeConsoleProviderScope();
             var memStream = new MemoryStream(Encoding.UTF8.GetBytes("Hello, コンニチハ!\nABCDEFG"));
-            var procTask = new ProcessTask(memStream, $"{_fixture.StandardInputPassThroughText.ExecutablePath}");
+            var procTask = new ProcessTask(memStream, $"{_fixture.StandardInputPassThroughText}");
             var result = await procTask;
 
             result.Output.TrimEnd().Should().Be("Hello, コンニチハ!\nABCDEFG");
@@ -288,7 +262,7 @@ namespace Chell.Tests
         public async Task ProcessOutput_StandardInputOutputCombined()
         {
             using var fakeConsoleScope = new FakeConsoleProviderScope();
-            var procTask = new ProcessTask($"{_fixture.EchoOutAndErrorArgs.ExecutablePath} Arg0 Arg1 Arg2 Arg3");
+            var procTask = new ProcessTask($"{_fixture.EchoOutAndErrorArgs} Arg0 Arg1 Arg2 Arg3");
             var result = await procTask;
 
             result.Output.TrimEnd().Should().Be(string.Join(Environment.NewLine, "[Arg0]", "[Arg2]"));
@@ -302,7 +276,7 @@ namespace Chell.Tests
         {
             using var fakeConsoleScope = new FakeConsoleProviderScope();
             var memStream = new MemoryStream(Encoding.Unicode.GetBytes("Hello, コンニチハ!\nABCDEFG"));
-            var procTask = new ProcessTask(memStream, $"{_fixture.StandardInputPassThroughBinary.ExecutablePath}");
+            var procTask = new ProcessTask(memStream, $"{_fixture.StandardInputPassThroughBinary}");
             var result = await procTask;
 
             result.OutputBinary.ToArray().Should().BeEquivalentTo(memStream.ToArray());
@@ -314,7 +288,7 @@ namespace Chell.Tests
             using var fakeConsoleScope = new FakeConsoleProviderScope();
             var data = Encoding.Unicode.GetBytes("Hello, コンニチハ!\nABCDEFG");
             var memStream = new MemoryStream(data);
-            var procTask = new ProcessTask(memStream, $"{_fixture.StandardInputPassThroughBinary.ExecutablePath}");
+            var procTask = new ProcessTask(memStream, $"{_fixture.StandardInputPassThroughBinary}");
             var destStream = new MemoryStream();
             var result = await procTask.Pipe(destStream);
 
@@ -327,8 +301,8 @@ namespace Chell.Tests
         public async Task Pipe_CloseDestFirst()
         {
             using var fakeConsoleScope = new FakeConsoleProviderScope();
-            var srcTask = new ProcessTask($"{_fixture.WriteSleepWriteExit.ExecutablePath}");
-            var destTask = new ProcessTask($"{_fixture.ReadOnce.ExecutablePath}");
+            var srcTask = new ProcessTask($"{_fixture.WriteSleepWriteExit}");
+            var destTask = new ProcessTask($"{_fixture.ReadOnce}");
 
             await (srcTask | destTask);
         }
@@ -337,8 +311,8 @@ namespace Chell.Tests
         public async Task Pipe_CloseSrcFirst()
         {
             using var fakeConsoleScope = new FakeConsoleProviderScope();
-            var srcTask = new ProcessTask($"{_fixture.HelloWorld.ExecutablePath}");
-            var destTask = new ProcessTask($"{_fixture.ReadAllLines.ExecutablePath}");
+            var srcTask = new ProcessTask($"{_fixture.HelloWorld}");
+            var destTask = new ProcessTask($"{_fixture.ReadAllLines}");
 
             await (srcTask | destTask);
         }
@@ -347,8 +321,8 @@ namespace Chell.Tests
         public async Task Pipe_ExitCode_NonZero()
         {
             using var fakeConsoleScope = new FakeConsoleProviderScope();
-            var srcTask = new ProcessTask($"{_fixture.ExitCodeNonZero.ExecutablePath}");
-            var destTask = new ProcessTask($"{_fixture.ReadAllLines.ExecutablePath}");
+            var srcTask = new ProcessTask($"{_fixture.ExitCodeNonZero}");
+            var destTask = new ProcessTask($"{_fixture.ReadAllLines}");
 
             await Assert.ThrowsAsync<ProcessTaskException>(async () => await (srcTask | destTask));
         }
@@ -357,8 +331,8 @@ namespace Chell.Tests
         public async Task Pipe_ExitCode_NonZero_ExitTailFirst()
         {
             using var fakeConsoleScope = new FakeConsoleProviderScope();
-            var srcTask = new ProcessTask($"{_fixture.ExitCodeNonZeroWaited.ExecutablePath}");
-            var destTask = new ProcessTask($"{_fixture.ReadAllLines.ExecutablePath}");
+            var srcTask = new ProcessTask($"{_fixture.ExitCodeNonZeroWaited}");
+            var destTask = new ProcessTask($"{_fixture.ReadAllLines}");
 
             await Assert.ThrowsAsync<ProcessTaskException>(async () => await (srcTask | destTask));
         }
@@ -367,8 +341,8 @@ namespace Chell.Tests
         public async Task Pipe_ExitCode_NonZero_NoThrow()
         {
             using var fakeConsoleScope = new FakeConsoleProviderScope();
-            var srcTask = new ProcessTask($"{_fixture.ExitCodeNonZero.ExecutablePath}");
-            var destTask = new ProcessTask($"{_fixture.ReadAllLines.ExecutablePath}");
+            var srcTask = new ProcessTask($"{_fixture.ExitCodeNonZero}");
+            var destTask = new ProcessTask($"{_fixture.ReadAllLines}");
 
             await (srcTask.NoThrow() | destTask);
         }
@@ -379,13 +353,13 @@ namespace Chell.Tests
             using var fakeConsoleScope = new FakeConsoleProviderScope();
             {
                 var currentDirectory = Environment.CurrentDirectory;
-                var output = await new ProcessTask($"{_fixture.WriteCurrentDirectory.ExecutablePath}");
+                var output = await new ProcessTask($"{_fixture.WriteCurrentDirectory}");
                 output.ToString().Trim().Should().Be(currentDirectory);
             }
             {
                 var currentDirectory = Environment.CurrentDirectory;
                 var workingDirectory = Path.GetFullPath(Path.Combine(currentDirectory, ".."));
-                var output = await new ProcessTask($"{_fixture.WriteCurrentDirectory.ExecutablePath}", new ProcessTaskOptions().WithWorkingDirectory(workingDirectory));
+                var output = await new ProcessTask($"{_fixture.WriteCurrentDirectory}", new ProcessTaskOptions().WithWorkingDirectory(workingDirectory));
                 output.ToString().Trim().Should().Be(workingDirectory);
             }
         }
@@ -396,7 +370,7 @@ namespace Chell.Tests
             using var fakeConsoleScope = new FakeConsoleProviderScope();
             await Assert.ThrowsAsync<OperationCanceledException>(async () =>
             {
-                await new ProcessTask($"{_fixture.WriteSleepWriteExit.ExecutablePath}",
+                await new ProcessTask($"{_fixture.WriteSleepWriteExit}",
                     new ProcessTaskOptions().WithTimeout(TimeSpan.FromMilliseconds(100)));
             });
         }
@@ -407,7 +381,7 @@ namespace Chell.Tests
             using var fakeConsoleScope = new FakeConsoleProviderScope();
             var (stdOut, stdErr) = await RunAsync(async (console) =>
             {
-                await new ProcessTask($"{_fixture.HelloWorld.ExecutablePath}", new ProcessTaskOptions(console: console).WithVerbosity(ChellVerbosity.Silent));
+                await new ProcessTask($"{_fixture.HelloWorld}", new ProcessTaskOptions(console: console).WithVerbosity(ChellVerbosity.Silent));
             });
 
             stdOut.Should().BeEmpty();
@@ -419,7 +393,7 @@ namespace Chell.Tests
             using var fakeConsoleScope = new FakeConsoleProviderScope();
             var (stdOut, stdErr) = await RunAsync(async (console) =>
             {
-                await new ProcessTask($"{_fixture.HelloWorld.ExecutablePath}", new ProcessTaskOptions(console: console).WithVerbosity(ChellVerbosity.CommandLine));
+                await new ProcessTask($"{_fixture.HelloWorld}", new ProcessTaskOptions(console: console).WithVerbosity(ChellVerbosity.CommandLine));
             });
 
             stdOut.Should().StartWith("$ ");
@@ -432,7 +406,7 @@ namespace Chell.Tests
             using var fakeConsoleScope = new FakeConsoleProviderScope();
             var (stdOut, stdErr) = await RunAsync(async (console) =>
             {
-                await new ProcessTask($"{_fixture.HelloWorld.ExecutablePath}", new ProcessTaskOptions(console: console).WithVerbosity(ChellVerbosity.ConsoleOutputs));
+                await new ProcessTask($"{_fixture.HelloWorld}", new ProcessTaskOptions(console: console).WithVerbosity(ChellVerbosity.ConsoleOutputs));
             });
 
             stdOut.Should().Be("Hello World!" + Environment.NewLine);
