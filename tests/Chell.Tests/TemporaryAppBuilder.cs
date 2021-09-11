@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -39,9 +39,9 @@ namespace Chell.Tests
             };
 
             var proc = Process.Start(procStartInfo)!;
-            proc.WaitForExit();
             var standardOutput = proc.StandardOutput.ReadToEnd();
             var standardError = proc.StandardError.ReadToEnd();
+            proc.WaitForExit();
 
             if (proc.ExitCode != 0)
             {
