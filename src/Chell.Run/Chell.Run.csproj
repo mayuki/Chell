@@ -16,6 +16,7 @@
     <PackageReference Include="Cocona.Lite" Version="1.6.0" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="3.11.0" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="3.11.0" />
+    <PackageReference Include="Mono.Options" Version="6.12.0.148" />
     <PackageReference Include="Sharprompt" Version="2.3.3" />
   </ItemGroup>
 

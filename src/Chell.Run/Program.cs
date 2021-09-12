@@ -100,6 +100,7 @@ namespace Chell.Run
             _ = typeof(Chell.ChellEnvironment).Assembly;
             _ = typeof(Cocona.CoconaLiteApp).Assembly;
             _ = typeof(Sharprompt.Prompt).Assembly;
+            _ = typeof(Mono.Options.Command).Assembly;
 
             var references = AppDomain.CurrentDomain.GetAssemblies()
                 .Distinct()
