@@ -15,6 +15,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.github\workflows\build.yaml = .github\workflows\build.yaml
 		Directory.Build.props = Directory.Build.props
 		README.md = README.md
+		.github\workflows\release.yaml = .github\workflows\release.yaml
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{AF454F92-8B84-446B-B0E2-9BA8887B09CC}"
