@@ -31,7 +31,7 @@ jobs:
 
     # Packaging
     - name: dotnet pack
-      run: dotnet pack -c Release --no-build --version-suffix "$(versionSuffix)" -p:IncludeSymbols=true -p:SymbolPackageFormat=snupkg --output $GITHUB_WORKSPACE/artifacts
+      run: dotnet pack -c Release --no-build --version-suffix "$VERSION_SUFFIX" -p:IncludeSymbols=true -p:SymbolPackageFormat=snupkg --output $GITHUB_WORKSPACE/artifacts
 
     # Upload & Publish
     - uses: actions/upload-artifact@master
