@@ -4,7 +4,7 @@
     <OutputType>Exe</OutputType>
     <TargetFrameworks>netcoreapp3.1;net5.0</TargetFrameworks>
 
-    <Description>Tool to run C# code like a script. Chell is a library and execution tool for providing a shell script-like (bash, cmd, ...) experience to .NET application.</Description>
+    <Description>Tool to run C# code like a script. Provides a shell script-like (bash, cmd, ...) experience to .NET application.</Description>
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>chell</ToolCommandName>
 <!--
