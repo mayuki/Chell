@@ -111,7 +111,12 @@ namespace Chell
             _processCancellationRegistration = _processCancellation.Token.Register(() =>
             {
                 WriteDebugTrace($"ProcessTimedOut: Pid={_process?.Id}; StartedAt={_startedAt}; Elapsed={DateTimeOffset.Now - _startedAt}");
+#if NET5_0_OR_GREATER || NETCOREAPP3_0 || NETCOREAPP3_1
+                _process?.Kill(true);
+#else
+                // TODO: .NET Standard 2.0 or 2.1 does not support kill child processes.
                 _process?.Kill();
+#endif
             });
 
             _output = new ProcessOutput(_options.ShellExecutor.Encoding);

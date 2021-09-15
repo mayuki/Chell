@@ -41,6 +41,7 @@ namespace Chell.Tests
         public string ReadOnce { get; }
         public string ReadAllLines { get; }
         public string WriteCurrentDirectory { get; }
+        public string Never { get; }
 
         public ProcessTaskTestFixture()
         {
@@ -126,7 +127,13 @@ namespace Chell.Tests
                     using System;
                     Console.WriteLine(Environment.CurrentDirectory);
                 "));
-            
+            Never = _slnBuilder.CreateProject(nameof(Never), builder =>
+                builder.WriteSourceFile("Program.cs", @"
+                    using System;
+                    using System.Threading;
+                    Console.WriteLine(""Hello"");
+                    while (true) { Thread.Sleep(1000); }
+                "));
             _slnBuilder.Build();
         }
 
@@ -367,12 +374,31 @@ namespace Chell.Tests
         [Fact]
         public async Task ProcessTimeout()
         {
-            using var fakeConsoleScope = new FakeConsoleProviderScope();
-            await Assert.ThrowsAsync<OperationCanceledException>(async () =>
+            Func<Task> execute = async () =>
             {
-                await new ProcessTask($"{_fixture.WriteSleepWriteExit}",
-                    new ProcessTaskOptions().WithTimeout(TimeSpan.FromMilliseconds(100)));
-            });
+                using var fakeConsoleScope = new FakeConsoleProviderScope();
+                await Assert.ThrowsAsync<OperationCanceledException>(async () =>
+                {
+                    await new ProcessTask($"{_fixture.WriteSleepWriteExit}",
+                        new ProcessTaskOptions().WithTimeout(TimeSpan.FromMilliseconds(300)));
+                });
+            };
+            await execute.Should().CompleteWithinAsync(TimeSpan.FromSeconds(2));
+        }
+
+        [Fact]
+        public async Task ProcessTimeout_Never()
+        {
+            Func<Task> execute = async () =>
+            {
+                using var fakeConsoleScope = new FakeConsoleProviderScope();
+                await Assert.ThrowsAsync<OperationCanceledException>(async () =>
+                {
+                    await new ProcessTask($"{_fixture.Never}",
+                        new ProcessTaskOptions().WithTimeout(TimeSpan.FromMilliseconds(300)));
+                });
+            };
+            await execute.Should().CompleteWithinAsync(TimeSpan.FromSeconds(2));
         }
 
         [Fact]
