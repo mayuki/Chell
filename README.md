@@ -1,7 +1,7 @@
 # Chell
 Write scripts with the power of C# and .NET
 
-Chell is a library and execution tool for providing a shell script-like (bash, cmd, ...) experience in .NET application.
+Chell is a library and execution tool for providing a shell script-like (bash, cmd, ...) experience to .NET application.
 
 ```csharp
 var branch = await Run($"git branch --show-current");
@@ -258,7 +258,7 @@ Env.ProcessTimeout = TimeSpan.FromSecond(1);
 
 // OperationCanceledException will be thrown after 1s.
 await Run($"ping -t localhost");
-``
+```
 
 #### `Arguments`
 Gets the arguments passed to the current application.
