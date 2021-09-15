@@ -1,21 +1,22 @@
 # Chell
 Write scripts with the power of C# and .NET
 
+Chell is a library and execution tool for creating a shell script-like (bash, cmd, ...) experience in C#.
+
 ```csharp
 var branch = await Run($"git branch --show-current");
 await Run($"git archive {branch} -o {branch}.zip");
 ```
 
-Chell is a library and execution tool for creating a shell script-like (bash, cmd, ...) experience in C#. Shell scripts tend to be complex, and on the other hand, it is boring for a pure .NET application to write various operations such as executing a process like a shell script.
-Chell will bridge the gap.
-
-This library and tool is heavily influenced by [google/zx](https://github.com/google/zx).
+ .NET applications are great for complex tasks, but executing processes can be boring. Chell brings the experience closer to shell scripting. This library and tool is heavily influenced by [google/zx](https://github.com/google/zx).
 
 ## When should I use Chell?
 - **Write a better shell scripts**: Write a complex script and use the power of .NET and C#
 - **Write a multi-platform shell scripts**: As an alternative to scripts that work on multiple platforms
 - **Run a process easily in your app**: As .NET library for easy handling of process launch and output
 - **All developers in the project are .NET developers**: 🙃
+
+Of course, if the shell script is already working fine and you don't have any problems, then there is no need to use Chell.
 
 ## Chell at a glance
 Using Chell makes the code feel more like a script by taking advantage of C# 9's top-level statements and C# 6's `using static`.
@@ -153,6 +154,15 @@ var newDirs = new [] { "foo", "bar", "my app", "your;app" };
 await Run($"mkdir {newDirs}"); // equivalent to `mkdir foo bar "my app" "your;app"`
 ```
 
+You can also pass the execution options (`ProcessTaskOptions`) to Run method.
+
+```csharp
+await Run($"ping -t localhost", new ProcessTaskOptions(
+    workingDirectory: @"C:\Windows",
+    timeout: TimeSpan.FromSeconds(1)
+));
+```
+
 #### `Cd(string)`
 ```csharp
 Cd("/usr/local/bin"); // equivalent to `Environment.CurrentDirectory = "/usr/local/bin";`
@@ -238,6 +248,17 @@ Env.Shell.UseCmd();
 - `Verbosity.CommandLine`: Displays the command line
 - `Verbosity.Output`: Displays the output of the command
 - `Verbosity.Silent`: No display
+
+#### `Env.ProcessTimeout`
+
+Sets the timeout for running the process. The default value is `0` (disabled).
+
+```csharp
+Env.ProcessTimeout = TimeSpan.FromSecond(1);
+
+// OperationCanceledException will be thrown after 1s.
+await Run($"ping -t localhost");
+``
 
 #### `Arguments`
 Gets the arguments passed to the current application.
