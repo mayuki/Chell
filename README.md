@@ -8,7 +8,7 @@ var branch = await Run($"git branch --show-current");
 await Run($"git archive {branch} -o {branch}.zip");
 ```
 
- .NET applications are great for complex tasks, but executing processes can be boring. Chell brings the experience closer to shell scripting. This library and tool is heavily influenced by [google/zx](https://github.com/google/zx).
+.NET applications are great for complex tasks, but executing processes can be boring. Chell brings the experience closer to shell scripting. This library and tool is heavily influenced by [google/zx](https://github.com/google/zx).
 
 ## When should I use Chell?
 - **Write a better shell scripts**: Write a complex script and use the power of .NET and C#
@@ -114,8 +114,8 @@ drwxr-xr-x 2 mayuki mayuki 4096 Sep  1 00:00 'foo bar'/
 
 
 ## Features
-- Stream and Process Pipes
 - Automatic shell character escaping and array expansion
+- Stream and Process Pipes
 - Provide utilities and shortcuts useful for scripting.
 - Simple shell script-like execution tools
 - Multi-platform (Windows, Linux, macOS)
@@ -133,7 +133,7 @@ Chell.Exports class exposes a variety of utilities and shortcuts to make writing
 
 ### Methods (Functions)
 #### `Run`
-`Run` method starts the process execution and returns the `ProcessTask`.
+Starts a process using the specified command-line and returns a `ProcessTask`.
 
 ```csharp
 await Run($"ls -lF");
@@ -143,7 +143,7 @@ await (Run)$"ls -lF";
 await new Run($"ls -lF");
 ```
 
-A process will be launched asynchronously and can wait for completion by `await`. And you can `await` to get a `ProcessOutput` object with its output.
+The process will be launched asynchronously and can wait for completion by `await`. And you can `await` to get a `ProcessOutput` object with its output.
 
 If the exit code of the process returns non-zero, it will throw an exception. To suppress this exception, see `NoThrow`.
 
@@ -154,7 +154,7 @@ var newDirs = new [] { "foo", "bar", "my app", "your;app" };
 await Run($"mkdir {newDirs}"); // equivalent to `mkdir foo bar "my app" "your;app"`
 ```
 
-You can also pass the execution options (`ProcessTaskOptions`) to Run method.
+You can also pass an execution options (`ProcessTaskOptions`) to Run method.
 
 ```csharp
 await Run($"ping -t localhost", new ProcessTaskOptions(
@@ -180,14 +180,14 @@ using (Cd("/usr/local/bin"))
 ```
 
 #### `Dump<T>(T value)`
-`Dump` method formats the object and write it to the coneole.
+Formats the object and write it to the console.
 
 ```csharp
 Dump(new { Foo = 123, Bar = "Baz" }); // => "{ Foo = 123, Bar = "Baz" }"
 ```
 
 #### `Which(string name)`, `TryWhich(string name, out string path)`
-`Which` method returns a path of the specified command.
+Returns a path of the specified command.
 
 ```csharp
 var dotnetPath = Which("dotnet");
@@ -202,14 +202,14 @@ Echo("Hello World!"); // equivalent to Console.WriteLine("Hello World!");
 ```
 
 #### `Sleep(int duration)`, `Sleep(TimeSpan duration)`
-`Sleep` method returns a Task that waits for the specified duration.
+Returns a Task that waits for the specified duration.
 
 ```csharp
 await Sleep(10); // Sleep for 10 seconds.
 ```
 
 #### `Exit(int exitCode)`
-`Exit` method terminates the application with an exit code.
+Terminates the application with an exit code.
 
 ```csharp
 Exit(1);
@@ -219,14 +219,14 @@ Exit(1);
 
 #### `Env.Vars`
 
-`Env.Vars` property exposes the environment variables as `IDictionary<string, string>`.
+Exposes the environment variables as `IDictionary<string, string>`.
 
 ```csharp
 Env.Vars["PATH"] = Env.Vars["PATH"] + ":/path/to/";
 ```
 
 #### `Env.IsWindows`
-`Env.IsWindows` property returns whether the running operating system is Windows or not. If it returns `false`, the operating system is Linux or macOS.
+Returns whether the running operating system is Windows or not. If it returns `false`, the operating system is Linux or macOS.
 
 ```csharp
 if (Env.IsWindows) { /* Something to do for Windows */ }
@@ -242,7 +242,7 @@ Env.Shell.UseCmd();
 ```
 
 #### `Env.Verbosity`
-`Env.Verbosity` property is output level when executing a command.
+Sets or gets the output level when executing a command/process.
 
 - `Verbosity.All`: Displays both the command line and the output of the command
 - `Verbosity.CommandLine`: Displays the command line
@@ -258,7 +258,7 @@ Env.ProcessTimeout = TimeSpan.FromSecond(1);
 
 // OperationCanceledException will be thrown after 1s.
 await Run($"ping -t localhost");
-```
+``
 
 #### `Arguments`
 Gets the arguments passed to the current application.
@@ -268,7 +268,7 @@ Gets the arguments passed to the current application.
 foreach (var arg in Arguments) { /* ... */ }
 ```
 #### `CurrentDirectory`, `ExecutableDirectory`, `ExecutableName`, `ExecutablePath`
-Get the current directory and application directory/name/path.
+Gets the current directory and the application directory or name or path.
 
 ```csharp
 // C:\> cd C:\Users\Alice
@@ -280,7 +280,7 @@ Echo(ExecutableName); // MyApp.exe
 Echo(ExecutablePath); // C:\Users\Alice\Downloads\MyApp.exe
 ```
 #### `StdIn`, `StdOut`, `StdErr`
-Provides a wrapper with methods useful for reading and writing to the standard input/output/error streams.
+Provides the wrapper with methods useful for reading and writing to the standard input/output/error streams.
 
 ```csharp
 // Reads data from standard input.
@@ -292,9 +292,8 @@ StdErr.WriteLine("Oops!");
 ```
 
 ## ProcessTask class
-This class manages the execution of processes created by `Run`.
+Represents the execution of process created by `Run`.
 
-**NOTE:** `Run` method returns a instance of `Run` class that inherits from `ProcessTask` class.
 
 ### `Pipe`
 Connects the standard output of the process to another `ProcessTask` or `Stream`.
@@ -308,7 +307,7 @@ var procTask2 = Run($"grep .dll");
 procTask1.Pipe(procTask2);
 ```
 
-A `Stream` can also be passed to Pipe. If the end of the pipe is a `Stream`, it will not be written to `ProcessOutput`.
+A `Stream` can also be passed to Pipe. If the ProcessTask has connected to the `Stream`, it will not write to `ProcessOutput`.
 
 ```csharp
 var memStream = new MemoryStream();
@@ -355,7 +354,7 @@ if (await proc.ExitCode != 0)
 ```
 
 ## ProcessOutput class
-The class that contains the results of the process execution.
+Provides the results of the process execution.
 
 ### `Combined`, `CombinedBinary`
 Gets the combined standard output and error as a string or byte array.
@@ -366,7 +365,7 @@ Gets the standard output as a string or byte array.
 ### `Error`, `ErrorBinary`
 Gets the standard error as a string or byte array.
 
-### `AsLines(bool trimEnd = false)`, `GetEnumerable()`
+### `AsLines(bool trimEnd = false)`, `GetEnumerator()`
 Gets the combined standard output and error as a per-line `IEnumerable<string>`.
 
 ```csharp
