@@ -1,19 +1,19 @@
 # Chell
-Write scripts with the power of C# and .NET
+Write scripts with the power of C# and .NET.
 
-Chell is a library and execution tool for providing a shell script-like (bash, cmd, ...) experience to .NET application.
+Chell is a library and execution tool for providing a shell script-like (bash, cmd, ...) experience to .NET applications.
 
 ```csharp
 var branch = await Run($"git branch --show-current");
 await Run($"git archive {branch} -o {branch}.zip");
 ```
 
-.NET applications are great for complex tasks, but executing processes can be boring. Chell brings the experience closer to shell scripting. This library and tool is heavily influenced by [google/zx](https://github.com/google/zx).
+.NET applications are great for complex tasks, but executing processes can be boring. Chell brings the experience closer to shell scripting. This library is heavily influenced by [google/zx](https://github.com/google/zx).
 
 ## When should I use Chell?
-- **Write a better shell scripts**: Write a complex script and use the power of .NET and C#
-- **Write a multi-platform shell scripts**: As an alternative to scripts that work on multiple platforms
-- **Run a process easily in your app**: As .NET library for easy handling of process launch and output
+- **Write better shell scripts**: Write a complex script and use the power of .NET and C#
+- **Write multi-platform shell scripts**: As an alternative to scripts that work on multiple platforms
+- **Run a process quickly in your app**: As .NET library for easy handling of process launch and output
 - **All developers in the project are .NET developers**: 🙃
 
 Of course, if the shell script is already working fine and you don't have any problems, then there is no need to use Chell.
@@ -90,7 +90,7 @@ using Chell;
 var result = await new Run($"ls -lF");
 ```
 
-Want to run it like a scripting language? Install [Chell.Run](#chellrun) and you can run it like a script.
+Want to run it like a scripting language? Install [Chell.Run](#chellrun), and you can run it like a script.
 
 ```bash
 % dotnet tool install -g Chell.Run
@@ -292,7 +292,7 @@ StdErr.WriteLine("Oops!");
 ```
 
 ## ProcessTask class
-Represents the execution of process created by `Run`.
+Represents the execution task of the process started by `Run`.
 
 
 ### `Pipe`
@@ -315,7 +315,7 @@ await Run($"ls -lF").Pipe(memStream);
 ```
 
 ### `ConnectStreamToStandardInput`
-Connects the Stream to the standard input of the process. This method can be executed only once, before the process starts.
+Connects the Stream to the standard input of the process. The method can be called only once before the process starts.
 
 ```csharp
 await (myStream | Run($"grep .dll"));
@@ -474,7 +474,7 @@ Console.WriteLine(ChellEnvironment.Current.Vars["PATH"]);
 ## Chell.Run
 Chell.Run executes the input source code in an environment where Chell and some libraries are available.
 
-It does not perform any NuGet package resolution, so if you need to handle such complexities, we recommend creating a typical C# project.
+It does not perform any NuGet package resolution, so we recommend creating a typical C# project if you need to handle such complexities.
 
 ```
 $ dotnet tool install -g Chell.Run
@@ -487,7 +487,7 @@ Echo("Hello World!");
 EOF
 ```
 
-Chell.Run implicitly has several namespace usings and library references that can be used out-of-the-box.
+Chell.Run implicitly has some namespace imports and library references and can be used out-of-the-box.
 
 Implicitly specified `using`s:
 
