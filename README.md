@@ -258,7 +258,7 @@ Env.ProcessTimeout = TimeSpan.FromSecond(1);
 
 // OperationCanceledException will be thrown after 1s.
 await Run($"ping -t localhost");
-``
+```
 
 #### `Arguments`
 Gets the arguments passed to the current application.
