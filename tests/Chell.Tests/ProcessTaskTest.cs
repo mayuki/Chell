@@ -11,7 +11,6 @@ using Chell.IO;
 using Chell.Shell;
 using FluentAssertions;
 using Kokuban;
-using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 using Xunit;
 
 namespace Chell.Tests
