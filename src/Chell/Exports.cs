@@ -63,7 +63,7 @@ namespace Chell
         /// <summary>
         /// Gets the command line arguments. like <c>args</c> of a entry point.
         /// </summary>
-        public static string[] Arguments => Env.Arguments;
+        public static IReadOnlyList<string> Arguments => Env.Arguments;
 
         /// <summary>
         /// Gets the path of the executing application. like <c>argv[0]</c>. (e.g. C:\\Path\To\App.exe, /path/to/app)
