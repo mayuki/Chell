@@ -11,6 +11,7 @@ namespace Chell.Tests.Shell
         public void Escape()
         {
             var executor = new BashShellExecutor();
+            executor.Escape(@"").Should().Be(@"");
             executor.Escape(@"foo").Should().Be(@"foo");
             executor.Escape(@"123").Should().Be(@"123");
             executor.Escape(@"f oo").Should().Be(@"$'f oo'");
