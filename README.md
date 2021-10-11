@@ -179,6 +179,9 @@ using (Cd("/usr/local/bin"))
 // The current directory is "/" again.
 ```
 
+#### `Mkdirp(string path)`
+Same as `mkdir -p`. Creates a new directory and any necessary sub-directories in the specified path.
+
 #### `Dump<T>(T value)`
 Formats the object and write it to the console.
 
@@ -279,6 +282,17 @@ Echo(ExecutableDirectory); // C:\Users\Alice\Downloads
 Echo(ExecutableName); // MyApp.exe
 Echo(ExecutablePath); // C:\Users\Alice\Downloads\MyApp.exe
 ```
+
+#### `HomeDirectory`
+Gets the path of the current user's home directory.
+
+```csharp
+// Windows: C:/Users/<UserName>
+// Linux: /home/<UserName>
+// macOS: /Users/<UserName>
+Echo(HomeDirectory);
+```
+
 #### `StdIn`, `StdOut`, `StdErr`
 Provides the wrapper with methods useful for reading and writing to the standard input/output/error streams.
 
