@@ -119,6 +119,11 @@ namespace Chell
         }
 
         /// <summary>
+        /// Gets the path of the current user's home directory.
+        /// </summary>
+        public string HomeDirectory => Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+
+        /// <summary>
         /// Gets the environment variables as <see cref="IDictionary{String, String}"/> representation.
         /// </summary>
         public IDictionary<string, string> Vars { get; } = new EnvironmentVariables();

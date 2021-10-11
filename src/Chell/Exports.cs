@@ -260,6 +260,13 @@ namespace Chell
             => Environment.Exit(exitCode);
 
         /// <summary>
+        /// Creates a new directory and any necessary sub-directories in the specified path.
+        /// </summary>
+        /// <param name="path"></param>
+        public static void Mkdirp(string path)
+            => Directory.CreateDirectory(path);
+
+        /// <summary>
         /// Fetches the content of the specified URL using GET method.
         /// </summary>
         /// <param name="requestUri"></param>
