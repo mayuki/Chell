@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -21,9 +21,17 @@ namespace Chell.Shell
 
         // https://unix.stackexchange.com/questions/187651/how-to-echo-single-quote-when-using-single-quote-to-wrap-special-characters-in
         public string Escape(string value)
-            => Regex.IsMatch(value, "^[a-zA-Z0-9_.-/]+$")
-                ? value
-                : $"$'{value.Replace("\\", "\\\\").Replace("'", "\\'").Replace("\"", "\\\"")}'";
+        {
+            if (string.IsNullOrEmpty(value))
+            {
+                return string.Empty;
+            }
+            if (Regex.IsMatch(value, "^[a-zA-Z0-9_.-/]+$"))
+            {
+                return value;
+            }
+            return $"$'{value.Replace("\\", "\\\\").Replace("'", "\\'").Replace("\"", "\\\"")}'";
+        }
 
         public BashShellExecutor(string? prefix = null)
         {

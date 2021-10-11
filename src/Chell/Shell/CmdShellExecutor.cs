@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 using System.Text.RegularExpressions;
 
 namespace Chell.Shell
@@ -12,6 +12,10 @@ namespace Chell.Shell
 
         public string Escape(string value)
         {
+            if (string.IsNullOrEmpty(value))
+            {
+                return string.Empty;
+            }
             if (Regex.IsMatch(value, "^[a-zA-Z0-9_.-/\\\\]+$"))
             {
                 return value;
